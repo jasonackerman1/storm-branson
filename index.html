@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Road to Branson</title>
+  <link rel="icon" type="image/png" href="img/tornado.png">
+  <link rel="apple-touch-icon" href="img/icon-180.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="sample-banner" class="sample-banner" hidden>Sample data · not the real numbers yet</div>
+
+  <header class="top">
+    <img class="wordmark" src="img/storm-wordmark.png" alt="Storm">
+    <div class="top-titles">
+      <h1>Road to Branson</h1>
+      <p id="trip-name" class="trip-name">Ballparks of America, Branson, MO</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-live="polite">
+      <div class="hero-label">Raised so far</div>
+      <div id="grand-total" class="grand-total">$0</div>
+      <div class="hero-goal"><span id="team-pct">0%</span> of the <span id="team-goal">$0</span> team goal</div>
+      <div class="team-bar"><div id="team-bar-fill" class="team-bar-fill"></div></div>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-value"><span id="stat-deposits">0</span><small id="stat-deposits-of">/0</small></div>
+        <div class="stat-label">Deposits in</div>
+        <div id="stat-deadline" class="stat-sub"></div>
+      </div>
+      <div class="stat">
+        <div class="stat-value"><span id="stat-full">0</span><small id="stat-full-of">/0</small></div>
+        <div class="stat-label">Buckets full</div>
+        <div id="stat-full-sub" class="stat-sub"></div>
+      </div>
+      <button class="stat stat-button" id="stat-general" type="button">
+        <div class="stat-value" id="stat-general-value">$0</div>
+        <div class="stat-label">General fund</div>
+        <div class="stat-sub">Not tied to a player</div>
+      </button>
+      <div class="stat">
+        <div class="stat-value" id="stat-avg">$0</div>
+        <div class="stat-label">Average per player</div>
+        <div id="stat-avg-sub" class="stat-sub"></div>
+      </div>
+    </section>
+
+    <section class="discount" id="discount" hidden></section>
+
+    <section class="roster-head">
+      <h2>The Buckets</h2>
+      <div class="sort" role="group" aria-label="Sort players">
+        <button type="button" data-sort="number" class="active">#</button>
+        <button type="button" data-sort="most">Most</button>
+        <button type="button" data-sort="least">Least</button>
+        <button type="button" data-sort="name">A–Z</button>
+      </div>
+    </section>
+    <p class="legend">
+      <span><i class="dot dot-red"></i>Filling</span>
+      <span><i class="dot dot-gold"></i>Full ($<span class="legend-goal">1,000</span>)</span>
+      <span><i class="dep-mini on">$</i>Deposit in</span>
+      <span><i class="dep-mini"></i>Deposit due</span>
+    </p>
+
+    <section id="grid" class="grid" aria-label="Players"></section>
+
+    <div id="warnings" class="warnings" hidden></div>
+  </main>
+
+  <footer class="foot">
+    <span id="updated">Loading…</span>
+    <button type="button" id="refresh" class="refresh">Refresh</button>
+  </footer>
+
+  <div id="sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <button type="button" class="sheet-close" data-close aria-label="Close">×</button>
+      <div id="sheet-body"></div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

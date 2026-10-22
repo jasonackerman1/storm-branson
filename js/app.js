@@ -1,0 +1,519 @@
+(function () {
+  'use strict';
+
+  var CONFIG = window.BRANSON_CONFIG || {};
+  var TABS = {
+    settings: { name: 'Settings', needs: ['goalperplayer'] },
+    players: { name: 'Players', needs: ['name'] },
+    payments: { name: 'Payments', needs: ['player', 'amount'] },
+    sponsors: { name: 'Sponsors', needs: ['player', 'company'] }
+  };
+  var JERSEY_PATH = 'M38 8 L22 13 L3 31 L16 51 L28 43 L28 113 L92 113 L92 43 L104 51 L117 31 L98 13 L82 8 Q60 26 38 8 Z';
+  var FILL_TOP = 8, FILL_BOTTOM = 113;
+  var STORE_PREFIX = 'storm-branson:';
+
+  var sheetId = new URLSearchParams(location.search).get('sheet') || CONFIG.sheetId || '';
+  var model = null;
+  var sortMode = store('sort') || 'number';
+  var prevLevels = {};      // player key -> last jersey fill level, so refreshes animate from where they were
+  var shownTotal = 0;
+  var lastFocus = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- small helpers ----------
+  function store(key, value) {
+    try {
+      if (value === undefined) return localStorage.getItem(STORE_PREFIX + key);
+      localStorage.setItem(STORE_PREFIX + key, value);
+    } catch (e) { return null; }
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function norm(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+  function num(v) {
+    var n = parseFloat(String(v == null ? '' : v).replace(/[$,\s]/g, ''));
+    return isFinite(n) ? n : 0;
+  }
+  function money(n) {
+    var cents = Math.round(n * 100) % 100 !== 0;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+  }
+  function parseDate(v) {
+    var s = String(v || '').trim(), m;
+    if (!s) return null;
+    if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return new Date(+m[1], +m[2] - 1, +m[3]);
+    if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))) {
+      var y = +m[3]; if (y < 100) y += 2000;
+      return new Date(y, +m[1] - 1, +m[2]);
+    }
+    var d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+  function shortDate(d) { return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''; }
+  function lastName(name) {
+    var parts = String(name).trim().split(/\s+/);
+    return (parts.length > 1 ? parts.slice(1).join(' ') : parts[0]).toUpperCase();
+  }
+  function firstName(name) { return String(name).trim().split(/\s+/)[0]; }
+
+  // ---------- CSV (Google's gviz export) ----------
+  function parseCSV(text) {
+    var rows = [], row = [], field = '', i = 0, q = false;
+    for (; i < text.length; i++) {
+      var c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); rows.push(row); row = []; field = '';
+      } else field += c;
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  function toObjects(rows) {
+    if (!rows.length) return [];
+    var keys = rows[0].map(function (h) { return norm(h).replace(/[^a-z0-9]/g, ''); });
+    return rows.slice(1).map(function (r) {
+      var o = {};
+      keys.forEach(function (k, i) { if (k) o[k] = (r[i] || '').trim(); });
+      return o;
+    }).filter(function (o) {
+      return Object.keys(o).some(function (k) { return o[k] !== ''; });
+    });
+  }
+
+  function fetchTab(key) {
+    var tab = TABS[key];
+    var url = 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(sheetId) +
+      '/gviz/tq?tqx=out:csv&headers=1&sheet=' + encodeURIComponent(tab.name) + '&_=' + Date.now();
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('The sheet answered with an error (' + res.status + ').');
+      return res.text();
+    }).then(function (text) {
+      if (/^\s*</.test(text)) throw new Error('The sheet isn’t shared as “Anyone with the link can view.”');
+      var objs = toObjects(parseCSV(text));
+      // Google quietly returns the FIRST tab when a tab name doesn't exist,
+      // so check the columns we expect are really there.
+      var header = parseCSV(text)[0] || [];
+      var have = header.map(function (h) { return norm(h).replace(/[^a-z0-9]/g, ''); });
+      tab.needs.forEach(function (n) {
+        if (have.indexOf(n) === -1) throw new Error('Couldn’t find the “' + tab.name + '” tab (or its column headers were changed).');
+      });
+      return objs;
+    });
+  }
+
+  function loadRaw() {
+    if (!sheetId) return Promise.resolve({ raw: window.BRANSON_SAMPLE, source: 'sample' });
+    var keys = Object.keys(TABS);
+    return Promise.all(keys.map(fetchTab)).then(function (results) {
+      var raw = {};
+      keys.forEach(function (k, i) { raw[k] = results[i]; });
+      store('cache:' + sheetId, JSON.stringify({ at: Date.now(), raw: raw }));
+      return { raw: raw, source: 'live' };
+    }).catch(function (err) {
+      var cached = null;
+      try { cached = JSON.parse(store('cache:' + sheetId) || 'null'); } catch (e) { cached = null; }
+      if (cached && cached.raw) return { raw: cached.raw, source: 'cache', at: cached.at, error: err };
+      throw err;
+    });
+  }
+
+  // ---------- turn sheet rows into totals ----------
+  function build(raw) {
+    var s = (raw.settings && raw.settings[0]) || {};
+    var settings = {
+      goal: num(s.goalperplayer) || 1000,
+      deposit: num(s.depositamount) || 50,
+      deadline: parseDate(s.depositdeadline),
+      discount: num(s.teamdiscount),
+      trip: s.tripname || 'Ballparks of America, Branson, MO'
+    };
+
+    var players = [], byKey = {};
+    (raw.players || []).forEach(function (p) {
+      if (!p.name) return;
+      var key = norm(p.name);
+      if (byKey[key]) return;
+      var player = {
+        key: key, name: p.name.trim(), number: (p.number || '').trim() || '?',
+        total: 0, depositPaid: 0, depositDate: null, payments: [], sponsors: []
+      };
+      byKey[key] = player;
+      players.push(player);
+    });
+
+    var general = { total: 0, payments: [] };
+    var warnings = { payments: {}, sponsors: {} };
+
+    (raw.payments || []).forEach(function (r) {
+      var amount = num(r.amount);
+      if (!amount) return;
+      var pay = {
+        date: parseDate(r.date), dateText: r.date || '', from: r.from || '', amount: amount,
+        method: r.method || '', type: r.type || '', notes: r.notes || ''
+      };
+      var who = norm(r.player);
+      var player = who ? byKey[who] : null;
+      if (who && !player) {
+        warnings.payments[r.player.trim()] = (warnings.payments[r.player.trim()] || 0) + 1;
+        pay.unmatched = r.player.trim();
+      }
+      if (player) {
+        player.total += amount;
+        player.payments.push(pay);
+        if (norm(pay.type) === 'deposit') {
+          player.depositPaid += amount;
+          if (!player.depositDate && player.depositPaid >= settings.deposit - 0.001) player.depositDate = pay.date;
+        }
+      } else {
+        general.total += amount;
+        general.payments.push(pay);
+      }
+    });
+
+    (raw.sponsors || []).forEach(function (r) {
+      if (!r.company) return;
+      var player = byKey[norm(r.player)];
+      if (!player) {
+        if (r.player) warnings.sponsors[r.player.trim()] = true;
+        return;
+      }
+      var company = norm(r.company);
+      var received = player.payments.reduce(function (sum, p) {
+        return norm(p.from) === company ? sum + p.amount : sum;
+      }, 0);
+      player.sponsors.push({
+        company: r.company, contact: r.contact || '', status: (r.status || 'Asked').trim(),
+        pledged: num(r.pledgedamount), received: received, notes: r.notes || ''
+      });
+    });
+
+    var byDateDesc = function (a, b) { return (b.date || 0) - (a.date || 0); };
+    players.forEach(function (p) {
+      p.payments.sort(byDateDesc);
+      p.hasDeposit = p.depositPaid >= settings.deposit - 0.001;
+      p.full = p.total >= settings.goal;
+      p.pct = settings.goal ? p.total / settings.goal : 0;
+    });
+    general.payments.sort(byDateDesc);
+
+    var playerMoney = players.reduce(function (s, p) { return s + p.total; }, 0);
+    return {
+      settings: settings, players: players, general: general, warnings: warnings,
+      grandTotal: playerMoney + general.total,
+      playerMoney: playerMoney,
+      teamGoal: settings.goal * players.length
+    };
+  }
+
+  // ---------- jersey graphic ----------
+  function fillLevel(pct) {
+    var p = Math.max(0, Math.min(1, pct));
+    if (p <= 0) return FILL_BOTTOM + 8;   // hide the wave crest when there's no money yet
+    return FILL_BOTTOM - p * (FILL_BOTTOM - FILL_TOP);
+  }
+  function jerseySVG(p, uid) {
+    var last = lastName(p.name);
+    var fit = last.length > 8 ? ' textLength="76" lengthAdjust="spacingAndGlyphs"' : '';
+    var waveTop = 'M-60 0 q15 -5 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 L180 130 L-60 130 Z';
+    return '<svg class="jersey" viewBox="0 0 120 120" aria-hidden="true">' +
+      '<defs><clipPath id="clip-' + uid + '"><path d="' + JERSEY_PATH + '"/></clipPath></defs>' +
+      '<path class="jersey-body" d="' + JERSEY_PATH + '"/>' +
+      '<g clip-path="url(#clip-' + uid + ')">' +
+        '<g class="jersey-fill" data-level="' + fillLevel(p.pct) + '" style="transform:translateY(' + (prevLevels[uid] != null ? prevLevels[uid] : FILL_BOTTOM) + 'px)">' +
+          '<g class="jersey-wave"><path d="' + waveTop + '" fill="url(#' + (p.full ? 'g-gold' : 'g-red') + ')"/></g>' +
+        '</g>' +
+      '</g>' +
+      '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#3a2f22') + '" stroke-width="2"/>' +
+      '<text class="jersey-name" x="60" y="50"' + fit + '>' + esc(last) + '</text>' +
+      '<text class="jersey-num" x="60" y="94">' + esc(p.number) + '</text>' +
+      '</svg>';
+  }
+  function animateFills(root) {
+    var fills = root.querySelectorAll('.jersey-fill[data-level]');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        fills.forEach(function (g) { g.style.transform = 'translateY(' + g.getAttribute('data-level') + 'px)'; });
+      });
+    });
+  }
+  function addGradients() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.style.position = 'absolute';
+    svg.innerHTML =
+      '<defs>' +
+      '<linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff2a3d"/><stop offset=".35" stop-color="#d00018"/><stop offset="1" stop-color="#6e0010"/></linearGradient>' +
+      '<linearGradient id="g-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset=".4" stop-color="#f8b000"/><stop offset="1" stop-color="#a87400"/></linearGradient>' +
+      '</defs>';
+    document.body.appendChild(svg);
+  }
+
+  // ---------- render ----------
+  function render() {
+    var m = model, st = m.settings;
+    $('trip-name').textContent = st.trip;
+    document.querySelectorAll('.legend-goal').forEach(function (el) { el.textContent = st.goal.toLocaleString('en-US'); });
+
+    countTo(m.grandTotal);
+    var teamPct = m.teamGoal ? m.grandTotal / m.teamGoal : 0;
+    $('team-pct').textContent = Math.round(teamPct * 100) + '%';
+    $('team-goal').textContent = money(m.teamGoal);
+    requestAnimationFrame(function () { $('team-bar-fill').style.width = Math.min(100, teamPct * 100) + '%'; });
+
+    var n = m.players.length;
+    var deposits = m.players.filter(function (p) { return p.hasDeposit; }).length;
+    var full = m.players.filter(function (p) { return p.full; }).length;
+    var stillNeeded = m.players.reduce(function (s, p) { return s + Math.max(0, st.goal - p.total); }, 0);
+
+    $('stat-deposits').textContent = deposits;
+    $('stat-deposits-of').textContent = '/' + n;
+    $('stat-deadline').textContent = deadlineText(st.deadline);
+    $('stat-full').textContent = full;
+    $('stat-full-of').textContent = '/' + n;
+    $('stat-full-sub').textContent = stillNeeded ? money(stillNeeded) + ' still to go' : 'Every bucket is full!';
+    $('stat-general-value').textContent = money(m.general.total);
+    $('stat-avg').textContent = money(n ? Math.round(m.playerMoney / n) : 0);
+    $('stat-avg-sub').textContent = 'Goal ' + money(st.goal) + ' each';
+
+    renderDiscount(deposits, n);
+    renderGrid();
+    renderWarnings();
+  }
+
+  function deadlineText(d) {
+    if (!d) return 'Deadline TBD';
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var days = Math.round((d - today) / 86400000);
+    if (days > 1) return 'Due ' + shortDate(d) + ' · ' + days + ' days left';
+    if (days === 1) return 'Due tomorrow';
+    if (days === 0) return 'Due today!';
+    return 'Deadline was ' + shortDate(d);
+  }
+
+  function renderDiscount(deposits, n) {
+    var el = $('discount'), st = model.settings;
+    if (!n) { el.hidden = true; return; }
+    el.hidden = false;
+    var by = st.deadline ? ' by ' + st.deadline.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : '';
+    var off = st.discount ? money(st.discount) + ' off' : 'the discounted price';
+    if (deposits >= n) {
+      el.className = 'discount won';
+      el.innerHTML = '🎉 <strong>All ' + n + ' deposits are in.</strong> Team discount: ' + esc(off) + ' for every player!';
+      return;
+    }
+    el.className = 'discount';
+    var firstCount = {};
+    model.players.forEach(function (p) { var f = norm(firstName(p.name)); firstCount[f] = (firstCount[f] || 0) + 1; });
+    var waiting = model.players.filter(function (p) { return !p.hasDeposit; }).map(function (p) {
+      var f = firstName(p.name);
+      // Two Liams on the team: add a last initial whenever a first name repeats.
+      return esc(firstCount[norm(f)] > 1 ? f + ' ' + lastName(p.name).charAt(0) + '.' : f);
+    });
+    el.innerHTML = '<strong>Team discount:</strong> if all ' + n + ' players get their ' + money(st.deposit) +
+      ' deposit in' + esc(by) + ', everyone gets ' + esc(off) + '. <strong>' + deposits + ' of ' + n + ' in.</strong> ' +
+      'Still waiting on ' + waiting.join(', ') + '.';
+  }
+
+  function sortedPlayers() {
+    var list = model.players.slice();
+    var numOf = function (p) { var v = parseInt(p.number, 10); return isNaN(v) ? 1e9 : v; };
+    if (sortMode === 'most') list.sort(function (a, b) { return b.total - a.total || numOf(a) - numOf(b); });
+    else if (sortMode === 'least') list.sort(function (a, b) { return a.total - b.total || numOf(a) - numOf(b); });
+    else if (sortMode === 'name') list.sort(function (a, b) { return lastName(a.name).localeCompare(lastName(b.name)); });
+    else list.sort(function (a, b) { return numOf(a) - numOf(b) || a.name.localeCompare(b.name); });
+    return list;
+  }
+
+  function renderGrid() {
+    var grid = $('grid'), goal = model.settings.goal;
+    grid.innerHTML = sortedPlayers().map(function (p, i) {
+      var uid = 'p' + model.players.indexOf(p);
+      var over = p.total - goal;
+      return '<button type="button" class="card' + (p.full ? ' full' : '') + '" data-key="' + esc(p.key) + '" ' +
+        'aria-label="' + esc(p.name) + ', ' + money(p.total) + ' of ' + money(goal) + (p.hasDeposit ? ', deposit in' : ', deposit not in yet') + '">' +
+        (over > 0 ? '<span class="over-chip">+' + money(over) + '</span>' : '') +
+        '<span class="dep' + (p.hasDeposit ? ' on' : '') + '" title="' + (p.hasDeposit ? 'Deposit in' : 'Deposit not in yet') + '">' + (p.hasDeposit ? '✓' : '$') + '</span>' +
+        jerseySVG(p, uid) +
+        '<div class="card-name">' + esc(p.name) + '</div>' +
+        '<div class="card-amount">' + money(p.total) + ' <small>/ ' + money(goal) + '</small></div>' +
+        '<div class="mini-bar"><div style="width:' + Math.min(100, p.pct * 100) + '%"></div></div>' +
+        '</button>';
+    }).join('');
+    animateFills(grid);
+    model.players.forEach(function (p, i) { prevLevels['p' + i] = fillLevel(p.pct); });
+  }
+
+  function renderWarnings() {
+    var w = model.warnings, lines = [];
+    Object.keys(w.payments).forEach(function (name) {
+      lines.push(w.payments[name] + ' payment' + (w.payments[name] > 1 ? 's name' : ' names') + ' “' + esc(name) +
+        '”, who isn’t on the Players tab. Counted in the General Fund until the name matches.');
+    });
+    Object.keys(w.sponsors).forEach(function (name) {
+      lines.push('A sponsor row names “' + esc(name) + '”, who isn’t on the Players tab, so it isn’t shown.');
+    });
+    var el = $('warnings');
+    el.hidden = !lines.length;
+    el.innerHTML = lines.length ? '<strong>For the organizers:</strong><br>' + lines.join('<br>') : '';
+  }
+
+  function countTo(target) {
+    var el = $('grand-total'), from = shownTotal, start = null, dur = 1300;
+    shownTotal = target;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || from === target) {
+      el.textContent = money(target); return;
+    }
+    function step(t) {
+      if (!start) start = t;
+      var k = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = k < 1 ? money(Math.round(from + (target - from) * e)) : money(target);
+      if (k < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- detail sheet ----------
+  function paymentRows(list, showPlayer) {
+    if (!list.length) return '<p class="empty">No payments recorded yet.</p>';
+    return '<ul class="rows">' + list.map(function (p) {
+      var bits = [p.date ? shortDate(p.date) : p.dateText, p.method, p.type].filter(Boolean);
+      if (showPlayer && p.unmatched) bits.push('listed as “' + p.unmatched + '”');
+      return '<li><div class="row-main"><div class="row-title">' + esc(p.from || 'Unknown') + '</div>' +
+        '<div class="row-sub">' + esc(bits.join(' · ')) + (p.notes ? ' · ' + esc(p.notes) : '') + '</div></div>' +
+        '<div class="row-amt">' + money(p.amount) + '</div></li>';
+    }).join('') + '</ul>';
+  }
+
+  function sponsorRows(list) {
+    if (!list.length) return '<p class="empty">No sponsors listed yet.</p>';
+    var order = { paid: 0, pledged: 1, asked: 2, declined: 3 };
+    list = list.slice().sort(function (a, b) {
+      return (order[norm(a.status)] != null ? order[norm(a.status)] : 2) - (order[norm(b.status)] != null ? order[norm(b.status)] : 2);
+    });
+    return '<ul class="rows">' + list.map(function (s) {
+      var cls = 'status-' + (order[norm(s.status)] != null ? norm(s.status) : 'asked');
+      var right = [];
+      if (s.received) right.push(money(s.received) + ' received');
+      if (s.pledged && s.received < s.pledged) right.push(money(s.pledged) + ' pledged');
+      return '<li><div class="row-main"><div class="row-title">' + esc(s.company) +
+        '<span class="status ' + cls + '">' + esc(s.status) + '</span></div>' +
+        '<div class="row-sub">' + esc([s.contact, s.notes].filter(Boolean).join(' · ')) + '</div></div>' +
+        '<div class="row-amt">' + right.map(esc).join('<br>') + '</div></li>';
+    }).join('') + '</ul>';
+  }
+
+  function openPlayer(key) {
+    var p = model.players.filter(function (x) { return x.key === key; })[0];
+    if (!p) return;
+    var goal = model.settings.goal, over = p.total - goal;
+    var status = p.full
+      ? (over > 0 ? '<strong>Bucket full</strong>, and ' + money(over) + ' over the goal!' : '<strong>Bucket full!</strong>')
+      : '<strong>' + money(goal - p.total) + '</strong> to go';
+    var dep = p.hasDeposit
+      ? '<span class="pill good">✓ Deposit in' + (p.depositDate ? ' · ' + shortDate(p.depositDate) : '') + '</span>'
+      : '<span class="pill">Deposit not in yet (' + money(model.settings.deposit) + ')</span>';
+    var uid = 'detail';
+    prevLevels[uid] = FILL_BOTTOM;
+    openSheet(
+      '<div class="detail">' +
+        '<div class="detail-top">' + jerseySVG(p, uid) +
+          '<div><h3 id="sheet-title">' + esc(p.name) + '</h3>' +
+          '<div class="detail-amount">' + money(p.total) + ' <small>of ' + money(goal) + '</small></div>' +
+          '<div class="detail-status">' + status + '</div></div>' +
+        '</div>' +
+        '<div class="detail-bar' + (p.full ? ' full' : '') + '"><div style="width:' + Math.min(100, p.pct * 100) + '%"></div></div>' +
+        '<div class="pill-row">' + dep +
+          (p.full ? '<span class="pill gold">★ Goal reached</span>' : '') +
+          '<span class="pill">' + Math.round(p.pct * 100) + '% of goal</span>' +
+        '</div>' +
+        '<h4>Sponsors</h4>' + sponsorRows(p.sponsors) +
+        '<h4>Payments received</h4>' + paymentRows(p.payments) +
+      '</div>'
+    );
+  }
+
+  function openGeneral() {
+    openSheet(
+      '<div class="detail">' +
+        '<h3 id="sheet-title" class="general-title" style="font-family:var(--jersey-font);font-weight:400;font-size:28px;text-transform:uppercase;margin:0">General Fund</h3>' +
+        '<div class="detail-amount">' + money(model.general.total) + '</div>' +
+        '<div class="detail-status">Donations that aren’t for a specific player. They count toward the team total.</div>' +
+        '<h4>Payments received</h4>' + paymentRows(model.general.payments, true) +
+      '</div>'
+    );
+  }
+
+  function openSheet(html) {
+    lastFocus = document.activeElement;
+    $('sheet-body').innerHTML = html;
+    $('sheet').hidden = false;
+    document.body.style.overflow = 'hidden';
+    animateFills($('sheet-body'));
+    $('sheet').querySelector('.sheet-close').focus();
+  }
+  function closeSheet() {
+    if ($('sheet').hidden) return;
+    $('sheet').hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  // ---------- loading ----------
+  var loading = false;
+  function refresh() {
+    if (loading) return;
+    loading = true;
+    $('refresh').disabled = true;
+    loadRaw().then(function (res) {
+      model = build(res.raw);
+      $('sample-banner').hidden = res.source !== 'sample';
+      render();
+      var time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      if (res.source === 'sample') $('updated').textContent = 'Showing sample data';
+      else if (res.source === 'cache') {
+        $('updated').innerHTML = '<span class="error">Couldn’t reach the sheet (' + esc(res.error.message) +
+          ') Showing numbers from ' + esc(new Date(res.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })) + '.</span>';
+      } else $('updated').textContent = 'Live from the team sheet · updated ' + time;
+    }).catch(function (err) {
+      $('updated').innerHTML = '<span class="error">Couldn’t load the team sheet. ' + esc(err.message) + '</span>';
+    }).then(function () {
+      loading = false;
+      $('refresh').disabled = false;
+    });
+  }
+
+  // ---------- wire up ----------
+  addGradients();
+  document.querySelectorAll('.sort button').forEach(function (b) {
+    b.classList.toggle('active', b.getAttribute('data-sort') === sortMode);
+    b.addEventListener('click', function () {
+      sortMode = b.getAttribute('data-sort');
+      store('sort', sortMode);
+      document.querySelectorAll('.sort button').forEach(function (x) { x.classList.toggle('active', x === b); });
+      if (model) renderGrid();
+    });
+  });
+  $('grid').addEventListener('click', function (e) {
+    var card = e.target.closest('.card');
+    if (card) openPlayer(card.getAttribute('data-key'));
+  });
+  $('stat-general').addEventListener('click', function () { if (model) openGeneral(); });
+  $('sheet').addEventListener('click', function (e) { if (e.target.closest('[data-close]')) closeSheet(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+  $('refresh').addEventListener('click', refresh);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && sheetId) refresh(); });
+  if (sheetId) setInterval(function () { if (document.visibilityState === 'visible') refresh(); }, Math.max(15, CONFIG.refreshSeconds || 60) * 1000);
+
+  refresh();
+})();
