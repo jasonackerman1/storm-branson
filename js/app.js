@@ -7,8 +7,25 @@
   // received; Sponsor rows with a Status and no Amount have been asked but
   // haven't paid yet.
   var TAB = { name: 'Tracker', needs: ['player', 'number', 'from', 'amount'] };
-  var JERSEY_PATH = 'M38 8 L22 13 L3 31 L16 51 L28 43 L28 113 L92 113 L92 43 L104 51 L117 31 L98 13 L82 8 Q60 26 38 8 Z';
-  var FILL_TOP = 8, FILL_BOTTOM = 113;
+  // Button-front baseball jersey: V-neck, short set-in sleeves, shirttail hem.
+  var JERSEY_PATH = 'M46 9 Q34 11 21 16 L4 38 L18 50 L30 41 L29 104 Q60 120 91 104 L90 41 L102 50 L116 38 L99 16 Q86 11 74 9 Q68 18 60 22 Q52 18 46 9 Z';
+  var COLLAR_BACK = 'M46 9 Q60 14 74 9 Q68 18 60 22 Q52 18 46 9 Z';
+  var COLLAR_EDGE = 'M46 9 Q52 18 60 22 Q68 18 74 9';
+  var FILL_TOP = 9, FILL_BOTTOM = 112;
+  // Fabric details drawn over the fill (clipped to the jersey): shading, sleeve
+  // seams, underarm folds, cuff piping, button placket and hem stitching.
+  var JERSEY_DETAILS =
+    '<rect x="0" y="0" width="120" height="120" fill="url(#g-shade)"/>' +
+    '<rect x="0" y="0" width="120" height="120" fill="url(#g-sheen)"/>' +
+    '<path d="M23 15 Q31 26 30 41 M97 15 Q89 26 90 41" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.2"/>' +
+    '<path d="M24 15 Q32 26 31 41 M96 15 Q88 26 89 41" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>' +
+    '<path d="M31 45 Q37 53 34 64 M89 45 Q83 53 86 64 M33 78 Q38 88 34 98 M87 78 Q82 88 86 98" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="2.2" stroke-linecap="round"/>' +
+    '<path d="M2 33 L23 51 M118 33 L97 51" stroke="#f4ede1" stroke-width="2" opacity=".85"/>' +
+    '<path d="M0 37 L20 54 M120 37 L100 54" stroke="#d00018" stroke-width="1.4"/>' +
+    '<path d="M56.5 22 L56.5 116 M63.5 22 L63.5 116" stroke="rgba(0,0,0,.4)" stroke-width=".9"/>' +
+    '<path d="M57.4 22 L57.4 116 M64.4 22 L64.4 116" stroke="rgba(255,255,255,.07)" stroke-width=".6"/>' +
+    '<g fill="rgba(244,237,225,.45)"><circle cx="60" cy="30" r="1.3"/><circle cx="60" cy="43" r="1.3"/><circle cx="60" cy="56" r="1.3"/><circle cx="60" cy="69" r="1.3"/><circle cx="60" cy="82" r="1.3"/><circle cx="60" cy="95" r="1.3"/></g>' +
+    '<path d="M29 100 Q60 116 91 100" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".7" stroke-dasharray="1.6 1.6"/>';
   var STORE_PREFIX = 'storm-branson:';
 
   var sheetId = new URLSearchParams(location.search).get('sheet') || CONFIG.sheetId || '';
@@ -289,8 +306,12 @@
         '<g class="jersey-fill" data-level="' + fillLevel(p.pct) + '" style="transform:translateY(' + (prevLevels[uid] != null ? prevLevels[uid] : FILL_BOTTOM) + 'px)">' +
           '<g class="jersey-wave"><path d="' + waveTop + '" fill="url(#' + (p.full ? 'g-gold' : 'g-red') + ')"/></g>' +
         '</g>' +
+        JERSEY_DETAILS +
       '</g>' +
-      '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#3a2f22') + '" stroke-width="2"/>' +
+      '<path d="' + COLLAR_BACK + '" fill="#080707"/>' +
+      '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#2b2b2b') + '" stroke-width="1.6" stroke-linejoin="round"/>' +
+      '<path d="' + COLLAR_EDGE + '" fill="none" stroke="#f4ede1" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>' +
+      '<path d="' + COLLAR_EDGE + '" fill="none" stroke="#d00018" stroke-width="1" stroke-linecap="round" transform="translate(0 1.6)"/>' +
       '<text class="jersey-name" x="60" y="50" style="font-size:' + textSize.name + 'px">' + esc(last) + '</text>' +
       '<text class="jersey-num" x="60" y="94" style="font-size:' + textSize.num + 'px">' + esc(p.number) + '</text>' +
       '</svg>';
@@ -341,6 +362,8 @@
       '<defs>' +
       '<linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff2a3d"/><stop offset=".35" stop-color="#d00018"/><stop offset="1" stop-color="#6e0010"/></linearGradient>' +
       '<linearGradient id="g-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset=".4" stop-color="#f8b000"/><stop offset="1" stop-color="#a87400"/></linearGradient>' +
+      '<linearGradient id="g-shade" gradientUnits="userSpaceOnUse" x1="28" y1="0" x2="92" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".5"/><stop offset=".2" stop-color="#000" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient>' +
+      '<linearGradient id="g-sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>' +
       '</defs>';
     document.body.appendChild(svg);
   }

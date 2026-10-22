@@ -212,8 +212,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 .card.full { border-color: var(--accent); box-shadow: 0 0 22px rgba(248, 176, 0, .18); }
 
 .jersey { width: 100%; max-width: 150px; height: auto; display: block; margin: 0 auto; overflow: visible; }
-.jersey-body { fill: #231c17; stroke: var(--line); stroke-width: 2; }
-.card.full .jersey-body { stroke: var(--accent); }
+.jersey-body { fill: #0e0e0e; }
 .jersey-fill { transition: transform 1.3s cubic-bezier(.2, .8, .2, 1); }
 .jersey-wave { animation: wave 3.2s linear infinite; }
 @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-60px); } }
