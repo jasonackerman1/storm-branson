@@ -64,9 +64,9 @@ See `SETUP.md`: upload the template, **Save as Google Sheets**, share it, then p
 - Checked by feeding the file to the dashboard as Google CSV: $300 total, 1/14 deposits, 14 jerseys, Owen's popup correct.
 
 ## Connected to the real Google Sheet (2026-10-22)
-- Sheet ID `1cO_uqQf53QxV3BkwLjvU8hkJYxUTcBye`, set in `js/config.js`. The sample banner is gone.
+- Sheet ID `1Yq7uIxXvhTFiOYZuM3FBPv_WR4ru0dbDU67rKY58vLQ` (a converted Google Sheet), set in `js/config.js`. The sample banner is gone.
 - gviz CSV returns the Tracker tab (35 lines: header + 34 rows), and Google sends `access-control-allow-origin` for the github.io site.
-- Jason's link had `rtpof=true`, a sign it may still be the uploaded .xlsx (Office-compatibility mode) rather than a converted Google Sheet. Reading works either way.
+- The first link (`1cO_uqQf53QxV3BkwLjvU8hkJYxUTcBye`, `rtpof=true`) was the uploaded .xlsx in Office mode. Jason converted it with Save as Google Sheets and sent the new ID the same day.
 
 ## Verified
 Headless Chrome (puppeteer-core, temporary, not committed), at desktop 1280px and phone 390px:
