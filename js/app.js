@@ -2,9 +2,10 @@
   'use strict';
 
   var CONFIG = window.BRANSON_CONFIG || {};
-  // The whole tracker is one tab. Rows with a # are the roster; rows with an
-  // Amount are money received; rows with a Status and no Amount are sponsors
-  // that have been asked but haven't paid yet.
+  // The whole tracker is one tab. Every name in the Player column gets a jersey
+  // (its # can be on any of that player's rows); rows with an Amount are money
+  // received; Sponsor rows with a Status and no Amount have been asked but
+  // haven't paid yet.
   var TAB = { name: 'Tracker', needs: ['player', 'number', 'from', 'amount'] };
   var JERSEY_PATH = 'M38 8 L22 13 L3 31 L16 51 L28 43 L28 113 L92 113 L92 43 L104 51 L117 31 L98 13 L82 8 Q60 26 38 8 Z';
   var FILL_TOP = 8, FILL_BOTTOM = 113;
@@ -126,10 +127,14 @@
 
   // Split the one-tab rows into roster, money received, and sponsors.
   function splitRows(rows) {
-    var players = [], payments = [], sponsors = {}, sponsorOrder = [];
+    var players = [], seen = {}, payments = [], sponsors = {}, sponsorOrder = [];
     var rank = { paid: 0, pledged: 1, asked: 2, declined: 3 };
     rows.forEach(function (r) {
-      if (r.player && r.number) players.push({ number: r.number, name: r.player });
+      if (r.player) {
+        var pk = norm(r.player);
+        if (!seen[pk]) { seen[pk] = { number: '', name: r.player.trim() }; players.push(seen[pk]); }
+        if (!seen[pk].number && r.number) seen[pk].number = r.number.trim();
+      }
       if (num(r.amount)) payments.push(r);
       var isSponsor = r.from && r.player && (norm(r.type) === 'sponsor' || r.status);
       if (!isSponsor) return;
@@ -144,7 +149,12 @@
         if (!num(r.amount) && r.notes) cur.notes = [cur.notes, r.notes].filter(Boolean).join(' · ');
       }
     });
-    return { players: players, payments: payments, sponsors: sponsorOrder.map(function (k) { return sponsors[k]; }) };
+    return {
+      players: players, payments: payments,
+      sponsors: sponsorOrder.map(function (k) { return sponsors[k]; }),
+      // A name with no # anywhere is usually a new player or a typo.
+      noNumber: players.filter(function (p) { return !p.number; }).map(function (p) { return p.name; })
+    };
   }
 
   // ---------- turn sheet rows into totals ----------
@@ -173,7 +183,7 @@
     });
 
     var general = { total: 0, payments: [] };
-    var warnings = { payments: {}, sponsors: {} };
+    var warnings = { payments: {}, sponsors: {}, noNumber: raw.noNumber || [] };
 
     (raw.payments || []).forEach(function (r) {
       var amount = num(r.amount);
@@ -399,7 +409,7 @@
     });
     el.innerHTML = '<strong>Team discount:</strong> if all ' + n + ' players get their ' + money(st.deposit) +
       ' deposit in' + esc(by) + ', everyone gets ' + esc(off) + '. <strong>' + deposits + ' of ' + n + ' in.</strong> ' +
-      'Still waiting on ' + waiting.join(', ') + '.';
+      'Still waiting on ' + waiting.join(', ').replace(/\.$/, '') + '.';
   }
 
   function sortedPlayers() {
@@ -440,6 +450,10 @@
     Object.keys(w.sponsors).forEach(function (name) {
       if (w.payments[name]) return;   // already flagged above
       lines.push('A sponsor row names “' + esc(name) + '”, who isn’t on the roster, so it isn’t shown.');
+    });
+    w.noNumber.forEach(function (name) {
+      lines.push('“' + esc(name) + '” doesn’t have a # on any row, so his jersey shows “?”. ' +
+        'If he’s new, add his number on one of his rows. If it’s a misspelling, fix the name to match his other rows.');
     });
     var el = $('warnings');
     el.hidden = !lines.length;

@@ -1,22 +1,19 @@
-"""Builds the one-tab spreadsheet ("Tracker") the dashboard reads, in two versions:
-  template/Storm-Branson-Tracker-with-sample-data.xlsx  the roster plus SAMPLE money
-      and sponsor rows (from js/sample-data.js) to test the connection. Every sample
-      row's Notes starts with "SAMPLE"; the dashboard warns until they're deleted.
-  template/Storm-Branson-Tracker-blank.xlsx  just the roster.
+"""Builds template/Storm-Branson-Tracker.xlsx, the one-tab sheet ("Tracker") the
+dashboard reads. It starts with one row per player: just his name and #.
 
 Run:  python3 tools/build_template.py
 
 How the dashboard reads the tab:
-  - a row with a #      = a player on the roster
-  - a row with Amount   = money received (Player blank = General Fund)
+  - every name in Player gets a jersey; his # can be on any one of his rows
+  - a row with Amount = money received (Player blank = General Fund)
   - a Sponsor row with a Status and no Amount = a company that's been asked
+A player's first donation can go right into his starting row.
 The # column is plain text so "?" survives: Google's CSV export blanks any value
 whose type doesn't match the rest of its column.
 """
 import json
 import os
 import subprocess
-from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.comments import Comment
 from openpyxl.styles import Font, PatternFill
@@ -29,8 +26,8 @@ MAX_ROWS = 1000
 
 COLUMNS = [
     # header, width, hover note
-    ('Player', 22, 'The player this row is for. Leave blank for a donation to the whole team (General Fund).'),
-    ('#', 6, 'Jersey number. Only on the roster rows at the top: a row with a # adds that player to the dashboard.'),
+    ('Player', 22, 'The player this row is for. Typing a new name adds a jersey to the dashboard. Leave blank for a donation to the whole team (General Fund).'),
+    ('#', 6, 'Jersey number. Only needed once per player, on any one of his rows. Use ? if he doesn\'t have one yet.'),
     ('Date', 12, 'The day the money came in.'),
     ('From', 28, 'Who it came from: a company, Grandma & Grandpa, a fundraiser table...'),
     ('Amount', 11, 'Dollars received. Leave blank on a sponsor row until their money actually arrives.'),
@@ -41,7 +38,6 @@ COLUMNS = [
 ]
 HEAD_FILL = PatternFill('solid', fgColor='000000')
 HEAD_FONT = Font(bold=True, color='F8B000')
-ROSTER_FILL = PatternFill('solid', fgColor='FFF4D6')
 
 
 def load_sample():
@@ -50,7 +46,7 @@ def load_sample():
     return json.loads(subprocess.check_output(['node', '-e', js, os.path.abspath(SAMPLE_JS)]))['rows']
 
 
-def build(out, sample_rows, with_money):
+def build(out, players):
     wb = Workbook()
     ws = wb.active
     ws.title = 'Tracker'
@@ -68,26 +64,9 @@ def build(out, sample_rows, with_money):
         for col in (1, 4, 9):
             ws.cell(row=r, column=col).number_format = '@'
 
-    rows = [r for r in sample_rows if r.get('number')]          # roster first
-    if with_money:
-        rows += [r for r in sample_rows if not r.get('number')]
-    for i, r in enumerate(rows, start=2):
-        roster = bool(r.get('number'))
-        ws.cell(row=i, column=1, value=r.get('player') or None)
-        ws.cell(row=i, column=2, value=r.get('number') or None)
-        if r.get('date'):
-            ws.cell(row=i, column=3, value=datetime.strptime(r['date'], '%m/%d/%Y'))
-        ws.cell(row=i, column=4, value=r.get('from') or None)
-        if r.get('amount'):
-            ws.cell(row=i, column=5, value=float(r['amount']))
-        ws.cell(row=i, column=6, value=r.get('method') or None)
-        ws.cell(row=i, column=7, value=r.get('type') or None)
-        ws.cell(row=i, column=8, value=r.get('status') or None)
-        if roster:
-            ws.cell(row=i, column=1).fill = ws.cell(row=i, column=2).fill = ROSTER_FILL
-        else:
-            note = r.get('notes') or ''
-            ws.cell(row=i, column=9, value='SAMPLE - delete this row' + (' (' + note + ')' if note else ''))
+    for i, r in enumerate(players, start=2):
+        ws.cell(row=i, column=1, value=r['player'])
+        ws.cell(row=i, column=2, value=r['number'])
 
     for rng, items in (('F2:F%d', 'Check,Venmo,Cash,Zelle,PayPal,Other'),
                        ('G2:G%d', 'Deposit,Sponsor,Family,Fundraiser,Other'),
@@ -98,9 +77,9 @@ def build(out, sample_rows, with_money):
 
     os.makedirs(os.path.dirname(out), exist_ok=True)
     wb.save(out)
-    print('wrote', os.path.normpath(out), '-', len(rows), 'rows')
+    print('wrote', os.path.normpath(out), '-', len(players), 'players')
 
 
-sample = load_sample()
-build(os.path.join(TEMPLATE_DIR, 'Storm-Branson-Tracker-with-sample-data.xlsx'), sample, True)
-build(os.path.join(TEMPLATE_DIR, 'Storm-Branson-Tracker-blank.xlsx'), sample, False)
+# The roster comes from the sample data's numbered rows, so there's one list to keep current.
+players = [{'player': r['player'], 'number': r['number']} for r in load_sample() if r.get('number')]
+build(os.path.join(TEMPLATE_DIR, 'Storm-Branson-Tracker.xlsx'), players)

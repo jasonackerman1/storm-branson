@@ -30,22 +30,23 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 
 ## Hosting + starter spreadsheets (2026-10-22)
 - **Live at https://jasonackerman1.github.io/storm-branson/**: public repo `jasonackerman1/storm-branson`, GitHub Pages from `main` (same pattern as Storm, with `.nojekyll`). There's no build step and no service worker, so a push is live as soon as Pages rebuilds.
-- Two starter files in `template/`. **`Storm-Branson-Tracker-with-sample-data.xlsx`** (recommended) has the real roster and settings, plus the sample payments and sponsors, each with Notes starting "SAMPLE - delete this row". **`Storm-Branson-Tracker-blank.xlsx`** has no money rows.
+- _(Superseded, see the one-tab section below.)_ Two starter files in `template/`. **`Storm-Branson-Tracker-with-sample-data.xlsx`** (recommended) has the real roster and settings, plus the sample payments and sponsors, each with Notes starting "SAMPLE - delete this row". **`Storm-Branson-Tracker-blank.xlsx`** has no money rows.
 - Jason asked for duplicate sample and blank tabs. That would break the tab-name lookup, so the workflow is instead: upload the sample file, connect, check, then delete the SAMPLE rows (the roster rows stay).
 - While the live sheet still has any SAMPLE rows, the dashboard shows a yellow banner ("The sheet still has N SAMPLE rows · delete them before sharing").
 
 ## Data: ONE tab, "Tracker" (simplified 2026-10-22), built by `tools/build_template.py` → `template/*.xlsx`
 - Jason found four tabs plus long instructions too much, so it's now one tab: **Player | # | Date | From | Amount | Method | Type | Status | Notes**.
-  - Rows with a **#** are the roster (at the top, shaded).
+  - **Every name in Player is a jersey** (revised same day, at Jason's request: no separate roster block). His # can be on any one of his rows. A kid with no money yet has a name-only row, and his first donation can be filled into it. A name with no # anywhere shows "?" plus an organizer note, since it's usually a typo or a new kid. An explicit "?" (Robby) doesn't trigger the note.
   - Rows with an **Amount** are money received. A blank Player means the General Fund.
   - **Sponsor** rows with a Status and no Amount are companies that have been asked. When they pay, the Amount goes on the same row, and the row shows as Paid.
   - Pledged amounts go in Notes.
 - Settings (goal, deposit, discount, deadline, trip name) moved to `js/config.js`. The instructions became hover notes on the headers.
 - In the app, `splitRows()` turns the one tab into the same players, payments, and sponsors the rest of the code already used. The sample totals and popups are identical to the four-tab version.
+- **Only one starter file now:** `template/Storm-Branson-Tracker.xlsx` (14 name + # rows). The sample-data/blank pair is gone. The connection test is seeing 14 jerseys at $0 with the right numbers. The SAMPLE-row banner code stays in the app, but nothing ships SAMPLE rows anymore.
 - Gotchas:
   - The `#` column is plain text so `?` survives, because gviz blanks values whose type doesn't match the column.
   - The page checks the headers, because Google returns the first tab for an unknown tab name.
-  - The Player column has no dropdown (there's no separate roster to point it at). Google's autocomplete helps, and the page flags unknown names.
+  - The Player column has no dropdown. Google's autocomplete helps, and a typo shows as a "?" jersey with an organizer note.
 - Jason chose an unlisted link (no login), so anyone with the dashboard link can see names, totals, and sponsors.
 
 ## Setup
@@ -65,5 +66,5 @@ Zero console errors. **Not yet tested against a real Google Sheet.**
 
 ## Open
 - Jason to test the prototype.
-- Jason uploads the sample-data file (SETUP.md), shares it, and sends the link. Then put the ID in `js/config.js`, push, check the numbers against the sheet, and have him delete the SAMPLE rows. Deposit deadline goes in `js/config.js` when he has it. **First real-Google test of the gviz read.**
+- Jason uploads `template/Storm-Branson-Tracker.xlsx` (SETUP.md), shares it, and sends the link. Then put the ID in `js/config.js`, push, and check that 14 jerseys at $0 show the right numbers. Deposit deadline goes in `js/config.js` when he has it. **First real-Google test of the gviz read.**
 - Deposit deadline date (TBD).
