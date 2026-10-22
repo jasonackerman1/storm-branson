@@ -86,3 +86,6 @@ Zero console errors. **Not yet tested against a real Google Sheet.**
 - **Deposit deadline:** goes in `js/config.js` (`depositDeadline`) when known. The countdown and discount line pick it up automatically.
 - Dates and methods for Owen's $300 are blank in the sheet; organizers can fill them in anytime.
 - Old uploaded-xlsx copy in Google Drive (ID `1cO_…`) should be deleted so nobody edits the wrong file.
+
+## Cache busting (2026-10-22)
+- `index.html` loads CSS/JS with `?v=...`. **Bump that value whenever js/ or css/ changes**, or browsers can keep showing the old version for up to 10 minutes (GitHub Pages caching).
