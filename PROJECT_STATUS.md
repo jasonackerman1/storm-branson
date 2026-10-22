@@ -12,7 +12,7 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 - **Grand total** (count-up) and team goal bar ($1,000 × number of players).
 - **Stat cards:** Deposits in (with deadline countdown), Buckets full ($ still to go), General Fund (tap for its payments), Average per player.
 - **Team-discount banner:** "X of 14 in, still waiting on …" (adds a last initial when first names repeat, e.g. the two Liams). Switches to a celebration once all deposits are in.
-- **Jersey buckets:** each jersey fills from the bottom with an animated wave, red while filling and gold once it reaches $1,000. A "+$X" chip shows money over the goal, and a deposit stamp sits in the corner (green check, or dashed $). Sort by #, Most, Least, A–Z (remembered per browser).
+- **Jersey buckets:** each jersey fills from the bottom with an animated wave, red while filling and gold once it reaches $1,000. A "+$X" chip shows money over the goal, and a deposit stamp sits in the corner (green check, or dashed $). Sort by Most (default), #, Least, A–Z (a picked sort is remembered per browser). Section title renamed "The Breakdown" (was "The Buckets") 2026-10-22.
 - **Player detail sheet** (tap a jersey): total, to-go/over, deposit date, Sponsors, and Money Collected (see below).
 - **Robustness:** a sheet that isn't shared, or a wrong tab name, gives a plain error message. Google silently returns the first tab for an unknown tab name, so the page checks the column headers. It falls back to the last good copy kept in that browser. Payment rows naming a player who isn't on the Players tab go to the General Fund, with a "For the organizers" note.
 - **Sample data** (`js/sample-data.js`) shows every state until a sheet ID is set. A yellow banner says so.

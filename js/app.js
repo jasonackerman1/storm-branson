@@ -14,7 +14,7 @@
 
   var sheetId = new URLSearchParams(location.search).get('sheet') || CONFIG.sheetId || '';
   var model = null;
-  var sortMode = store('sort') || 'number';
+  var sortMode = store('sort') || 'most';
   var prevLevels = {};      // player key -> last jersey fill level, so refreshes animate from where they were
   var shownTotal = 0;
   var lastFocus = null;
