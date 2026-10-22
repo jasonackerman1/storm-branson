@@ -4,7 +4,9 @@ This takes about 5 minutes and only has to be done once.
 
 ## 1. Put the template in Google Drive
 1. Go to [drive.google.com](https://drive.google.com) and sign in with the account that should **own** the tracker.
-2. Click **+ New → File upload** and pick `template/Storm-Branson-Tracker.xlsx` from this folder.
+2. Click **+ New → File upload** and pick `template/Storm-Branson-Tracker-with-sample-data.xlsx` from this folder.
+   It has the real roster and settings, plus made-up SAMPLE payments and sponsors so you can check the connection.
+   (`Storm-Branson-Tracker-blank.xlsx` is the same thing with no money rows, if you'd rather skip the test.)
 3. Double-click the uploaded file. It opens in Google Sheets.
 4. **Important:** click **File → Save as Google Sheets**. That makes a real Google Sheet copy, which opens in a new tab.
    The dashboard can't read the uploaded `.xlsx` version, so use the new copy from here on and delete the `.xlsx` from Drive.
@@ -23,6 +25,12 @@ This takes about 5 minutes and only has to be done once.
    `.../index.html?sheet=1AbC...xyz`
 3. **To make it permanent:** paste the ID into `js/config.js` between the quotes on the `sheetId:` line (or send it to Claude to do).
    The yellow "Sample data" banner disappears once it's reading the real sheet.
+
+## 4. Check it, then delete the sample rows
+1. Open the dashboard. Its numbers should match the sample payments in the sheet, and a yellow banner should say the sheet still has SAMPLE rows.
+2. In the sheet, go to **Payments**, select every sample row (row 2 down to the last one), right-click, and choose **Delete rows**. Do the same on **Sponsors**.
+   Leave **Players** and **Settings** alone. Those are real.
+3. Refresh the dashboard. Everything goes to $0 and the yellow banner disappears. Now it's ready to share.
 
 ## How the organizers use it
 - **Payments tab:** one row per check, Venmo, or cash payment. Pick the player from the dropdown, or leave Player blank for a general donation.

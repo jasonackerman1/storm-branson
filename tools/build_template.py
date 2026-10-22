@@ -1,4 +1,8 @@
-"""Builds template/Storm-Branson-Tracker.xlsx — the spreadsheet the dashboard reads.
+"""Builds the spreadsheet the dashboard reads, in two versions:
+  template/Storm-Branson-Tracker-with-sample-data.xlsx  real roster + settings, plus
+      SAMPLE payments/sponsors (from js/sample-data.js) to test the connection.
+      Every sample row's Notes starts with "SAMPLE"; the dashboard warns until they're deleted.
+  template/Storm-Branson-Tracker-blank.xlsx  real roster + settings, no money rows.
 
 Upload the result to Google Drive and save it as a Google Sheet (see SETUP.md).
 Run:  python3 tools/build_template.py
@@ -8,13 +12,27 @@ value whose type doesn't match the rest of its column):
   - Players "Number" is plain text, so "?" survives next to real numbers.
   - Settings is one row with one setting per column, so no column mixes types.
 """
+import json
 import os
+import subprocess
+from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, '..', 'template', 'Storm-Branson-Tracker.xlsx')
+TEMPLATE_DIR = os.path.join(HERE, '..', 'template')
+SAMPLE_JS = os.path.join(HERE, '..', 'js', 'sample-data.js')
+
+
+def load_sample():
+    js = ('global.window={};require(process.argv[1]);'
+          'process.stdout.write(JSON.stringify(window.BRANSON_SAMPLE))')
+    return json.loads(subprocess.check_output(['node', '-e', js, os.path.abspath(SAMPLE_JS)]))
+
+
+def sample_note(note):
+    return 'SAMPLE - delete this row' + (' (' + note + ')' if note else '')
 
 PLAYERS = [
     ('7', 'Owen Ackerman'), ('5', 'Kayden Lyons'), ('99', 'Jaxsen Rodriguez'),
@@ -46,83 +64,108 @@ def dropdown(ws, rng, formula, blank_ok=True, error=None):
     dv.add(rng)
 
 
-wb = Workbook()
+def build(out, sample=None):
+    wb = Workbook()
 
-# --- Instructions --------------------------------------------------------
-ws = wb.active
-ws.title = 'Instructions'
-ws.column_dimensions['A'].width = 110
-lines = [
-    ('STORM: ROAD TO BRANSON  (money tracker)', Font(bold=True, size=14)),
-    ('The dashboard reads this sheet every time it loads. Edit here, and the dashboard updates.', None),
-    ('', None),
-    ('PAYMENTS tab: add one row for every check, Venmo, or cash payment that comes in.', Font(bold=True)),
-    ('  Date: the day it came in.   Player: pick the player from the dropdown. Leave it BLANK for a donation that isn\'t for a specific player (it goes to the General Fund).', None),
-    ('  From: who sent it (a company, a grandparent, the family...).   Amount: dollars only, e.g. 150.', None),
-    ('  Method: Check / Venmo / Cash / Zelle / PayPal / Other.', None),
-    ('  Type: pick "Deposit" for the $50 commitment deposit. That is how the dashboard knows a player\'s deposit is in.', None),
-    ('        Use Sponsor for money from a company (it shows under the player\'s Sponsors), Family for family money, Fundraiser for table/event money.', None),
-    ('  Table collections (e.g. two boys at a Dunkin\' Donuts table): split the money and add ONE ROW PER BOY with his share.', None),
-    ('        Put the same "From" on each (e.g. Dunkin\' Donuts table) and a note like "Split with Jake ($125 total)".', None),
-    ('  Every payment, including the deposit, counts toward the player\'s $1,000 bucket.', None),
-    ('', None),
-    ('SPONSORS tab: the companies each player is asking for donations.', Font(bold=True)),
-    ('  Status: Asked, Pledged, Paid, or Declined. Pledged Amount: what they promised (optional).', None),
-    ('  When the money actually arrives, ALSO add it on the Payments tab, with the same company name in "From".', None),
-    ('', None),
-    ('PLAYERS tab: the roster. Add or remove rows and the dashboard follows. Keep names spelled exactly the same everywhere.', Font(bold=True)),
-    ('SETTINGS tab: goal per player, deposit amount, deposit deadline (type it like 3/1/2027), team discount.', Font(bold=True)),
-    ('', None),
-    ('Don\'t rename the tabs or the column headers in row 1. The dashboard finds data by those names.', NOTE_FONT),
-]
-for r, (text, font) in enumerate(lines, start=1):
-    c = ws.cell(row=r, column=1, value=text)
-    if font:
-        c.font = font
-    c.alignment = Alignment(wrap_text=True)
+    # --- Instructions --------------------------------------------------------
+    ws = wb.active
+    ws.title = 'Instructions'
+    ws.column_dimensions['A'].width = 110
+    lines = [
+        ('STORM: ROAD TO BRANSON  (money tracker)', Font(bold=True, size=14)),
+        ('The dashboard reads this sheet every time it loads. Edit here, and the dashboard updates.', None),
+        ('', None),
+        ('PAYMENTS tab: add one row for every check, Venmo, or cash payment that comes in.', Font(bold=True)),
+        ('  Date: the day it came in.   Player: pick the player from the dropdown. Leave it BLANK for a donation that isn\'t for a specific player (it goes to the General Fund).', None),
+        ('  From: who sent it (a company, a grandparent, the family...).   Amount: dollars only, e.g. 150.', None),
+        ('  Method: Check / Venmo / Cash / Zelle / PayPal / Other.', None),
+        ('  Type: pick "Deposit" for the $50 commitment deposit. That is how the dashboard knows a player\'s deposit is in.', None),
+        ('        Use Sponsor for money from a company (it shows under the player\'s Sponsors), Family for family money, Fundraiser for table/event money.', None),
+        ('  Table collections (e.g. two boys at a Dunkin\' Donuts table): split the money and add ONE ROW PER BOY with his share.', None),
+        ('        Put the same "From" on each (e.g. Dunkin\' Donuts table) and a note like "Split with Jake ($125 total)".', None),
+        ('  Every payment, including the deposit, counts toward the player\'s $1,000 bucket.', None),
+        ('', None),
+        ('SPONSORS tab: the companies each player is asking for donations.', Font(bold=True)),
+        ('  Status: Asked, Pledged, Paid, or Declined. Pledged Amount: what they promised (optional).', None),
+        ('  When the money actually arrives, ALSO add it on the Payments tab, with the same company name in "From".', None),
+        ('', None),
+        ('PLAYERS tab: the roster. Add or remove rows and the dashboard follows. Keep names spelled exactly the same everywhere.', Font(bold=True)),
+        ('SETTINGS tab: goal per player, deposit amount, deposit deadline (type it like 3/1/2027), team discount.', Font(bold=True)),
+        ('', None),
+        ('Don\'t rename the tabs or the column headers in row 1. The dashboard finds data by those names.', NOTE_FONT),
+    ]
+    for r, (text, font) in enumerate(lines, start=1):
+        c = ws.cell(row=r, column=1, value=text)
+        if font:
+            c.font = font
+        c.alignment = Alignment(wrap_text=True)
 
-# --- Settings (one row, one setting per column) --------------------------
-ws = wb.create_sheet('Settings')
-header(ws, ['Goal Per Player', 'Deposit Amount', 'Deposit Deadline', 'Team Discount', 'Trip Name'],
-       [18, 18, 20, 18, 46])
-ws.append([1000, 50, None, 100, 'Ballparks of America, Branson, MO'])
-ws['A2'].number_format = ws['B2'].number_format = ws['D2'].number_format = '"$"#,##0'
-ws['C2'].number_format = 'm/d/yyyy'
+    # --- Settings (one row, one setting per column) --------------------------
+    ws = wb.create_sheet('Settings')
+    header(ws, ['Goal Per Player', 'Deposit Amount', 'Deposit Deadline', 'Team Discount', 'Trip Name'],
+           [18, 18, 20, 18, 46])
+    ws.append([1000, 50, None, 100, 'Ballparks of America, Branson, MO'])
+    ws['A2'].number_format = ws['B2'].number_format = ws['D2'].number_format = '"$"#,##0'
+    ws['C2'].number_format = 'm/d/yyyy'
 
-# --- Players --------------------------------------------------------------
-ws = wb.create_sheet('Players')
-header(ws, ['Number', 'Name'], [10, 28])
-for num, name in PLAYERS:
-    ws.append([num, name])
-for r in range(2, MAX_ROWS + 1):
-    ws.cell(row=r, column=1).number_format = '@'  # keep "?" alongside real numbers
+    # --- Players --------------------------------------------------------------
+    ws = wb.create_sheet('Players')
+    header(ws, ['Number', 'Name'], [10, 28])
+    for num, name in PLAYERS:
+        ws.append([num, name])
+    for r in range(2, MAX_ROWS + 1):
+        ws.cell(row=r, column=1).number_format = '@'  # keep "?" alongside real numbers
 
-player_list = f'Players!$B$2:$B${MAX_ROWS}'
+    player_list = f'Players!$B$2:$B${MAX_ROWS}'
 
-# --- Payments ---------------------------------------------------------------
-ws = wb.create_sheet('Payments')
-header(ws, ['Date', 'Player', 'From', 'Amount', 'Method', 'Type', 'Notes'],
-       [12, 22, 30, 12, 12, 13, 40])
-for r in range(2, MAX_ROWS + 1):
-    ws.cell(row=r, column=1).number_format = 'm/d/yyyy'
-    ws.cell(row=r, column=4).number_format = '"$"#,##0.00'
-    ws.cell(row=r, column=3).number_format = '@'
-    ws.cell(row=r, column=7).number_format = '@'
-dropdown(ws, f'B2:B{MAX_ROWS}', player_list,
-         error='Pick a player from the list, or leave it blank for the General Fund.')
-dropdown(ws, f'E2:E{MAX_ROWS}', '"Check,Venmo,Cash,Zelle,PayPal,Other"')
-dropdown(ws, f'F2:F{MAX_ROWS}', '"Deposit,Sponsor,Family,Fundraiser,Other"')
+    # --- Payments ---------------------------------------------------------------
+    ws = wb.create_sheet('Payments')
+    header(ws, ['Date', 'Player', 'From', 'Amount', 'Method', 'Type', 'Notes'],
+           [12, 22, 30, 12, 12, 13, 40])
+    for r in range(2, MAX_ROWS + 1):
+        ws.cell(row=r, column=1).number_format = 'm/d/yyyy'
+        ws.cell(row=r, column=4).number_format = '"$"#,##0.00'
+        ws.cell(row=r, column=3).number_format = '@'
+        ws.cell(row=r, column=7).number_format = '@'
+    dropdown(ws, f'B2:B{MAX_ROWS}', player_list,
+             error='Pick a player from the list, or leave it blank for the General Fund.')
+    dropdown(ws, f'E2:E{MAX_ROWS}', '"Check,Venmo,Cash,Zelle,PayPal,Other"')
+    dropdown(ws, f'F2:F{MAX_ROWS}', '"Deposit,Sponsor,Family,Fundraiser,Other"')
 
-# --- Sponsors ----------------------------------------------------------------
-ws = wb.create_sheet('Sponsors')
-header(ws, ['Player', 'Company', 'Contact', 'Status', 'Pledged Amount', 'Notes'],
-       [22, 30, 24, 12, 16, 40])
-for r in range(2, MAX_ROWS + 1):
-    ws.cell(row=r, column=5).number_format = '"$"#,##0'
-    for col in (2, 3, 6):
-        ws.cell(row=r, column=col).number_format = '@'
-dropdown(ws, f'A2:A{MAX_ROWS}', player_list, error='Pick a player from the list.')
-dropdown(ws, f'D2:D{MAX_ROWS}', '"Asked,Pledged,Paid,Declined"')
+    # --- Sponsors ----------------------------------------------------------------
+    ws = wb.create_sheet('Sponsors')
+    header(ws, ['Player', 'Company', 'Contact', 'Status', 'Pledged Amount', 'Notes'],
+           [22, 30, 24, 12, 16, 40])
+    for r in range(2, MAX_ROWS + 1):
+        ws.cell(row=r, column=5).number_format = '"$"#,##0'
+        for col in (2, 3, 6):
+            ws.cell(row=r, column=col).number_format = '@'
+    dropdown(ws, f'A2:A{MAX_ROWS}', player_list, error='Pick a player from the list.')
+    dropdown(ws, f'D2:D{MAX_ROWS}', '"Asked,Pledged,Paid,Declined"')
 
-wb.save(OUT)
-print('wrote', os.path.normpath(OUT))
+
+    if sample:
+        ws = wb['Payments']
+        for i, r in enumerate(sample['payments'], start=2):
+            ws.cell(row=i, column=1, value=datetime.strptime(r['date'], '%m/%d/%Y'))
+            ws.cell(row=i, column=2, value=r['player'] or None)
+            ws.cell(row=i, column=3, value=r['from'])
+            ws.cell(row=i, column=4, value=float(r['amount']))
+            ws.cell(row=i, column=5, value=r['method'])
+            ws.cell(row=i, column=6, value=r['type'])
+            ws.cell(row=i, column=7, value=sample_note(r['notes']))
+        ws = wb['Sponsors']
+        for i, r in enumerate(sample['sponsors'], start=2):
+            ws.cell(row=i, column=1, value=r['player'])
+            ws.cell(row=i, column=2, value=r['company'])
+            ws.cell(row=i, column=3, value=r['contact'] or None)
+            ws.cell(row=i, column=4, value=r['status'])
+            ws.cell(row=i, column=5, value=float(r['pledgedamount']) if r['pledgedamount'] else None)
+            ws.cell(row=i, column=6, value=sample_note(r['notes']))
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    wb.save(out)
+    print('wrote', os.path.normpath(out))
+
+
+build(os.path.join(TEMPLATE_DIR, 'Storm-Branson-Tracker-with-sample-data.xlsx'), load_sample())
+build(os.path.join(TEMPLATE_DIR, 'Storm-Branson-Tracker-blank.xlsx'))

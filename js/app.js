@@ -228,7 +228,12 @@
     general.payments.sort(byDateDesc);
 
     var playerMoney = players.reduce(function (s, p) { return s + p.total; }, 0);
+    // Test rows from the starter spreadsheet have Notes starting with "SAMPLE".
+    var sampleRows = (raw.payments || []).concat(raw.sponsors || []).filter(function (r) {
+      return /^\s*sample\b/i.test(r.notes || '');
+    }).length;
     return {
+      sampleRows: sampleRows,
       settings: settings, players: players, general: general, warnings: warnings,
       grandTotal: playerMoney + general.total,
       playerMoney: playerMoney,
@@ -538,7 +543,10 @@
     Promise.all([loadRaw(), fontReady]).then(function (all) {
       var res = all[0];
       model = build(res.raw);
-      $('sample-banner').hidden = res.source !== 'sample';
+      var banner = $('sample-banner');
+      if (res.source === 'sample') banner.textContent = 'Sample data · not the real numbers yet';
+      else if (model.sampleRows) banner.textContent = 'The sheet still has ' + model.sampleRows + ' SAMPLE row' + (model.sampleRows === 1 ? '' : 's') + ' · delete them before sharing';
+      banner.hidden = !(res.source === 'sample' || model.sampleRows);
       render();
       var time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
       if (res.source === 'sample') $('updated').textContent = 'Showing sample data';
