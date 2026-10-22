@@ -81,6 +81,9 @@ Headless Chrome (puppeteer-core, temporary, not committed), at desktop 1280px an
 Zero console errors. **Not yet tested against a real Google Sheet.**
 
 ## Open
-- Jason to test the prototype.
-- Jason uploads `template/Storm-Branson-Tracker.xlsx` (SETUP.md), shares it, and sends the link. Then put the ID in `js/config.js`, push, and check that 14 jerseys at $0 show the right numbers. Deposit deadline goes in `js/config.js` when he has it. **First real-Google test of the gviz read.**
-- Deposit deadline date (TBD).
+- **Confirm an edit round-trip:** change something in the Google Sheet and check it appears on the dashboard within about a minute. Not yet tested by Jason.
+- **Sammy Van Tassel's money:** Jason assumes Sammy paid his deposit and has some donations, but nothing is confirmed. Add rows once it is.
+- **Deposit deadline:** goes in `js/config.js` (`depositDeadline`) when known. The countdown and discount line pick it up automatically.
+- Dates and methods for Owen's $300 are blank in the sheet; organizers can fill them in anytime.
+- Unanswered: should Robby Glas also show #7 in the Storm walk-up app (his tile currently reads GLAS / ?)?
+- Old uploaded-xlsx copy in Google Drive (ID `1cO_…`) should be deleted so nobody edits the wrong file.
