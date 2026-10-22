@@ -23,11 +23,13 @@ window.BRANSON_CONFIG = {
     end: '8/2/2027'
   },
 
-  // Ballparks of America's team payment schedule, in order. The team total has
-  // to reach each running sum by its due date; they show as marks on the team
-  // bar. The deposit has no date because it's due when the team registers
-  // ($500 by 9/30, $1,000 from 10/1 on). The last payment is "the rest", so it
-  // uses the full team goal.
+  // Ballparks of America's team payment schedule, in order, from the 2027
+  // Global Games event page. (Their general FAQ still shows an older
+  // $1,000 / $3,000 / $3,000 schedule; go with the coach's EventConnect
+  // dashboard if it differs.) The team total has to reach each running sum by
+  // its due date; they show as marks on the team bar. The deposit has no date
+  // because it's due when the team registers ($500 by 9/30, $1,000 from 10/1
+  // on). The last payment is "the rest", so it uses the full team goal.
   teamPayments: [
     { label: 'Deposit', amount: 1000, due: '' },
     { label: '2nd payment', amount: 2500, due: '11/30/2026' },
