@@ -7,25 +7,41 @@
   // received; Sponsor rows with a Status and no Amount have been asked but
   // haven't paid yet.
   var TAB = { name: 'Tracker', needs: ['player', 'number', 'from', 'amount'] };
-  // Button-front baseball jersey: V-neck, short set-in sleeves, shirttail hem.
-  var JERSEY_PATH = 'M46 9 Q34 11 21 16 L4 38 L18 50 L30 41 L29 104 Q60 120 91 104 L90 41 L102 50 L116 38 L99 16 Q86 11 74 9 Q68 18 60 22 Q52 18 46 9 Z';
-  var COLLAR_BACK = 'M46 9 Q60 14 74 9 Q68 18 60 22 Q52 18 46 9 Z';
-  var COLLAR_EDGE = 'M46 9 Q52 18 60 22 Q68 18 74 9';
-  var FILL_TOP = 9, FILL_BOTTOM = 112;
-  // Fabric details drawn over the fill (clipped to the jersey): shading, sleeve
-  // seams, underarm folds, cuff piping, button placket and hem stitching.
+  // Back of a baseball jersey (where the name and number go): ribbed collar,
+  // short set-in sleeves with striped cuffs, shirttail hem with side slits.
+  var JERSEY_PATH = 'M45 8 Q60 13 75 8 Q88 10 102 15 L118 42 L100 53 L91 39 L92 100 L93 103 C86 112 72 116 60 116 C48 116 34 112 27 103 L28 100 L29 39 L20 53 L2 42 L18 15 Q32 10 45 8 Z';
+  var FILL_TOP = 8, FILL_BOTTOM = 116;
+  // Fabric drawn over the fill (clipped to the jersey), so it still reads as a
+  // jersey at any fill level: knit texture, lighting, soft folds, seams, cuff
+  // stripes, collar band and hem stitching.
   var JERSEY_DETAILS =
-    '<rect x="0" y="0" width="120" height="120" fill="url(#g-shade)"/>' +
-    '<rect x="0" y="0" width="120" height="120" fill="url(#g-sheen)"/>' +
-    '<path d="M23 15 Q31 26 30 41 M97 15 Q89 26 90 41" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.2"/>' +
-    '<path d="M24 15 Q32 26 31 41 M96 15 Q88 26 89 41" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>' +
-    '<path d="M31 45 Q37 53 34 64 M89 45 Q83 53 86 64 M33 78 Q38 88 34 98 M87 78 Q82 88 86 98" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="2.2" stroke-linecap="round"/>' +
-    '<path d="M2 33 L23 51 M118 33 L97 51" stroke="#f4ede1" stroke-width="2" opacity=".85"/>' +
-    '<path d="M0 37 L20 54 M120 37 L100 54" stroke="#d00018" stroke-width="1.4"/>' +
-    '<path d="M56.5 22 L56.5 116 M63.5 22 L63.5 116" stroke="rgba(0,0,0,.4)" stroke-width=".9"/>' +
-    '<path d="M57.4 22 L57.4 116 M64.4 22 L64.4 116" stroke="rgba(255,255,255,.07)" stroke-width=".6"/>' +
-    '<g fill="rgba(244,237,225,.45)"><circle cx="60" cy="30" r="1.3"/><circle cx="60" cy="43" r="1.3"/><circle cx="60" cy="56" r="1.3"/><circle cx="60" cy="69" r="1.3"/><circle cx="60" cy="82" r="1.3"/><circle cx="60" cy="95" r="1.3"/></g>' +
-    '<path d="M29 100 Q60 116 91 100" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".7" stroke-dasharray="1.6 1.6"/>';
+    '<rect width="120" height="120" fill="url(#g-knit)"/>' +
+    '<rect width="120" height="120" fill="url(#g-light)"/>' +
+    '<rect width="120" height="120" fill="url(#g-shade)"/>' +
+    '<g filter="url(#f-soft)" fill="none" stroke-linecap="round">' +
+      '<g stroke="#000" stroke-opacity=".55">' +
+        '<path d="M22 19 Q28 29 27 40 M98 19 Q92 29 93 40" stroke-width="3"/>' +
+        '<path d="M31 45 Q41 53 45 66 M89 45 Q79 53 75 66" stroke-width="3.2"/>' +
+        '<path d="M34 84 Q50 79 66 86 Q76 90 86 83" stroke-width="2.4" stroke-opacity=".5"/>' +
+        '<path d="M38 94 Q41 102 38 111 M84 92 Q81 101 83 110" stroke-width="2" stroke-opacity=".45"/>' +
+        '<path d="M9 34 Q15 37 18 47 M111 34 Q105 37 102 47" stroke-width="2.6"/>' +
+        '<path d="M46 16 Q60 20 74 16" stroke-width="2.4"/>' +
+      '</g>' +
+      '<g stroke="#fff" stroke-opacity=".16">' +
+        '<path d="M34 43 Q44 51 48 64 M86 43 Q76 51 72 64" stroke-width="2.2"/>' +
+        '<path d="M35 81 Q50 76 65 83" stroke-width="1.8"/>' +
+        '<path d="M36 24 Q46 21 54 27 M84 24 Q74 21 66 27" stroke-width="3"/>' +
+        '<path d="M12 31 Q18 33 22 41" stroke-width="2"/>' +
+      '</g>' +
+    '</g>' +
+    '<path d="M24 13 Q31 26 29 39 M96 13 Q89 26 91 39" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="1"/>' +
+    '<path d="M25.4 13.6 Q32.4 26 30.4 39 M94.6 13.6 Q87.6 26 89.6 39" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width=".45" stroke-dasharray="1.2 1"/>' +
+    '<path d="M-1 37 L26 53 M121 37 L94 53" stroke="#f4ede1" stroke-width="2.2"/>' +
+    '<path d="M0.6 34.6 L27.2 50.8 M119.4 34.6 L92.8 50.8" stroke="#d00018" stroke-width="1.3"/>' +
+    '<path d="M28 97 C35 107 48 111 60 111 C72 111 85 107 92 97" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".5" stroke-dasharray="1.3 1.1"/>' +
+    '<path d="M45 8 Q60 13 75 8" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="7"/>' +
+    '<path d="M45 8 Q60 13 75 8" fill="none" stroke="#f4ede1" stroke-width="3.2"/>' +
+    '<path d="M46 11.2 Q60 16.2 74 11.2" fill="none" stroke="#d00018" stroke-width="1.2"/>';
   var STORE_PREFIX = 'storm-branson:';
 
   var sheetId = new URLSearchParams(location.search).get('sheet') || CONFIG.sheetId || '';
@@ -299,26 +315,26 @@
   function jerseySVG(p, uid) {
     var last = lastName(p.name);
     var waveTop = 'M-60 0 q15 -5 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 L180 130 L-60 130 Z';
+    var num = esc(p.number), numStyle = 'font-size:' + textSize.num + 'px';
     return '<svg class="jersey" viewBox="0 0 120 120" aria-hidden="true">' +
-      '<defs><clipPath id="clip-' + uid + '"><path d="' + JERSEY_PATH + '"/></clipPath></defs>' +
-      '<path class="jersey-body" d="' + JERSEY_PATH + '"/>' +
+      '<defs><clipPath id="clip-' + uid + '"><path d="' + JERSEY_PATH + '"/></clipPath>' +
+        '<path id="arc-' + uid + '" d="M22 45 Q60 27 98 45"/></defs>' +
+      '<path class="jersey-body" d="' + JERSEY_PATH + '" filter="url(#f-drop)"/>' +
       '<g clip-path="url(#clip-' + uid + ')">' +
         '<g class="jersey-fill" data-level="' + fillLevel(p.pct) + '" style="transform:translateY(' + (prevLevels[uid] != null ? prevLevels[uid] : FILL_BOTTOM) + 'px)">' +
           '<g class="jersey-wave"><path d="' + waveTop + '" fill="url(#' + (p.full ? 'g-gold' : 'g-red') + ')"/></g>' +
         '</g>' +
         JERSEY_DETAILS +
       '</g>' +
-      '<path d="' + COLLAR_BACK + '" fill="#080707"/>' +
-      '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#2b2b2b') + '" stroke-width="1.6" stroke-linejoin="round"/>' +
-      '<path d="' + COLLAR_EDGE + '" fill="none" stroke="#f4ede1" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>' +
-      '<path d="' + COLLAR_EDGE + '" fill="none" stroke="#d00018" stroke-width="1" stroke-linecap="round" transform="translate(0 1.6)"/>' +
-      '<text class="jersey-name" x="60" y="50" style="font-size:' + textSize.name + 'px">' + esc(last) + '</text>' +
-      '<text class="jersey-num" x="60" y="94" style="font-size:' + textSize.num + 'px">' + esc(p.number) + '</text>' +
+      '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#000') + '" stroke-opacity="' + (p.full ? 1 : .8) + '" stroke-width="1.2" stroke-linejoin="round"/>' +
+      '<text class="jersey-name" style="font-size:' + textSize.name + 'px"><textPath href="#arc-' + uid + '" startOffset="50%">' + esc(last) + '</textPath></text>' +
+      '<text class="jersey-num-edge" x="60" y="98" style="' + numStyle + '">' + num + '</text>' +
+      '<text class="jersey-num" x="60" y="98" style="' + numStyle + '">' + num + '</text>' +
       '</svg>';
   }
   // One name size and one number size for every jersey: the largest that lets
   // the longest last name (and widest number) fit across the chest.
-  var CHEST_WIDTH = 58, NAME_MAX = 13, NUM_MAX = 40;
+  var CHEST_WIDTH = 58, NAME_WIDTH = 52, NAME_MAX = 13, NUM_MAX = 40;
   var textSize = { name: NAME_MAX, num: NUM_MAX };
   function fitJerseyText() {
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -341,7 +357,7 @@
     var nameW = widest('jersey-name', NAME_MAX, model.players.map(function (p) { return lastName(p.name); }));
     var numW = widest('jersey-num', NUM_MAX, model.players.map(function (p) { return p.number; }));
     document.body.removeChild(svg);
-    textSize.name = nameW > CHEST_WIDTH ? +(NAME_MAX * CHEST_WIDTH / nameW).toFixed(2) : NAME_MAX;
+    textSize.name = nameW > NAME_WIDTH ? +(NAME_MAX * NAME_WIDTH / nameW).toFixed(2) : NAME_MAX;
     textSize.num = numW > CHEST_WIDTH ? +(NUM_MAX * CHEST_WIDTH / numW).toFixed(2) : NUM_MAX;
   }
 
@@ -353,6 +369,20 @@
       });
     });
   }
+  // A small tile of fabric grain (fine noise plus a faint knit rib), drawn once.
+  function knitTexture() {
+    var c = document.createElement('canvas'), n = 64;
+    c.width = c.height = n;
+    var ctx = c.getContext('2d'), img = ctx.createImageData(n, n);
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+      var i = (y * n + x) * 4, light = Math.random() < .5;
+      var rib = (x % 4 === 0) ? 18 : 0;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = light ? 255 : 0;
+      img.data[i + 3] = Math.round(Math.random() * 26) + rib;
+    }
+    ctx.putImageData(img, 0, 0);
+    try { return c.toDataURL(); } catch (e) { return ''; }
+  }
   function addGradients() {
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
@@ -362,8 +392,11 @@
       '<defs>' +
       '<linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff2a3d"/><stop offset=".35" stop-color="#d00018"/><stop offset="1" stop-color="#6e0010"/></linearGradient>' +
       '<linearGradient id="g-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset=".4" stop-color="#f8b000"/><stop offset="1" stop-color="#a87400"/></linearGradient>' +
-      '<linearGradient id="g-shade" gradientUnits="userSpaceOnUse" x1="28" y1="0" x2="92" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".5"/><stop offset=".2" stop-color="#000" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient>' +
-      '<linearGradient id="g-sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>' +
+      '<linearGradient id="g-shade" gradientUnits="userSpaceOnUse" x1="26" y1="0" x2="94" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".16" stop-color="#000" stop-opacity="0"/><stop offset=".84" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></linearGradient>' +
+      '<radialGradient id="g-light" gradientUnits="userSpaceOnUse" cx="46" cy="34" r="80"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>' +
+      '<pattern id="g-knit" patternUnits="userSpaceOnUse" width="16" height="16"><image href="' + knitTexture() + '" width="16" height="16"/></pattern>' +
+      '<filter id="f-soft" filterUnits="userSpaceOnUse" x="-10" y="-10" width="140" height="140"><feGaussianBlur stdDeviation="1.5"/></filter>' +
+      '<filter id="f-drop" filterUnits="userSpaceOnUse" x="-10" y="-10" width="140" height="145"><feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#000" flood-opacity=".7"/></filter>' +
       '</defs>';
     document.body.appendChild(svg);
   }

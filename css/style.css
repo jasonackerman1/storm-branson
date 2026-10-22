@@ -212,19 +212,20 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 .card.full { border-color: var(--accent); box-shadow: 0 0 22px rgba(248, 176, 0, .18); }
 
 .jersey { width: 100%; max-width: 150px; height: auto; display: block; margin: 0 auto; overflow: visible; }
-.jersey-body { fill: #0e0e0e; }
 .jersey-fill { transition: transform 1.3s cubic-bezier(.2, .8, .2, 1); }
 .jersey-wave { animation: wave 3.2s linear infinite; }
 @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-60px); } }
-.jersey-name, .jersey-num {
+.jersey-body { fill: #111; }
+.jersey-name, .jersey-num, .jersey-num-edge {
   font-family: var(--jersey-font);
-  fill: #fff;
-  stroke: rgba(0, 0, 0, .7);
-  stroke-width: 3px;
-  paint-order: stroke;
   text-anchor: middle;
+  paint-order: stroke;
+  stroke-linejoin: round;
 }
-.jersey-name { letter-spacing: .04em; }
+/* Tackle twill: white letters, red outline, thin black edge. */
+.jersey-name { fill: #f4ede1; stroke: #000; stroke-width: 2.4px; letter-spacing: .06em; }
+.jersey-num { fill: #fff; stroke: #d00018; stroke-width: 3px; }
+.jersey-num-edge { fill: #000; stroke: #000; stroke-width: 6.5px; }
 
 .card-name { font-weight: 700; font-size: 15px; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-amount { font-family: var(--jersey-font); font-size: 24px; margin-top: 2px; font-variant-numeric: tabular-nums; }
