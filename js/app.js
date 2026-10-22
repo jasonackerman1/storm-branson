@@ -508,7 +508,8 @@
       : 'That’s ' + money(upcoming.need) + ' total; ';
     next.innerHTML = '<strong>Next team payment:</strong> ' + esc(upcoming.label) + ' (' + money(upcoming.amount) + ') is due ' +
       esc(shortDate(upcoming.due)) + ' (' + when + '). ' + total + money(m.grandTotal) + ' raised, ' +
-      (gap > 0 ? '<strong>' + money(gap) + ' to go</strong>.' : '<strong class="ok">on pace ✓</strong>');
+      (gap > 0 ? '<strong>' + money(gap) + ' to go</strong>.' : '<strong class="ok">on pace ✓</strong>') +
+      ' <a href="#team-payments">What if a payment is late?</a>';
   }
 
   function deadlineText(d) {

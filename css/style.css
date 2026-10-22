@@ -282,6 +282,11 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 12px;
 }
+/* Wide screens: 7 across, so the 14-player roster fits in two rows. */
+@media (min-width: 1100px) {
+  .grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .grid .card-name { white-space: normal; text-wrap: balance; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
+}
 
 .card {
   position: relative;
@@ -593,6 +598,8 @@ body { position: relative; }
 .prep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .prep-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
 .prep-card h3 { margin: 0 0 8px; font-size: 16px; }
+.prep-wide { grid-column: 1 / -1; }
+.team-next a { color: var(--accent); white-space: nowrap; }
 .prep-card ul { margin: 0; padding-left: 18px; }
 .prep-card li { font-size: 14px; line-height: 1.45; color: var(--text-dim); margin: 4px 0; }
 .prep-card li strong { color: var(--text); }
