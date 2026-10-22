@@ -52,6 +52,17 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 ## Setup
 See `SETUP.md`: upload the template, **Save as Google Sheets**, share it, then put the ID in `js/config.js` (or add `?sheet=ID` to test).
 
+## Real starting data (2026-10-22)
+- `/Users/jackerman/Documents/Storm/Storm-Branson-Tracker-START.xlsx` is **outside the repo on purpose**: it has real business names and money, and the repo is public. Built from the template by a one-off script.
+- **Owen:** $50 deposit, and $125 each from Phancy Screens and from Shutters, Screens and More, both Paid, total $300. Asked: LeRose Point to Point, Window Works, Arrow, Harbor Freight, Konica Minolta.
+- **Johnathan Velez:** GDC Barber, Catherine's Hair Design and Spa, Hennessy Liquors, Halligan's Public House (all Asked).
+- **Sammy Van Tassel:** Dana Distributors, Herring Sanitation, Taylor Recycling, Bach's True Value, Independent Helicopters, Red Tail Flight School, Veolia (all Asked).
+- **Mason Frank:** Orange County Sheriff's Office PBA, Wallkill Valley Federal Savings, Ulster County Sheriff's Office PBA, License to Sell, Carolina Boys (all Asked).
+- Dates and methods weren't known, so they're blank.
+- **Not entered:** Sammy's deposit and donations. Jason only *assumes* he paid, and the amounts are unknown.
+- **Spellings to confirm** (they came in by dictation): Herring Sanitation, Bach's True Value, LeRose Point to Point, whether "Window Works" and "Arrow" are two companies, Shutters, Screens and More (maybe "Worthy …"), Carolina Boys, License to Sell, GDC Barber.
+- Checked by feeding the file to the dashboard as Google CSV: $300 total, 1/14 deposits, 14 jerseys, Owen's popup correct.
+
 ## Verified
 Headless Chrome (puppeteer-core, temporary, not committed), at desktop 1280px and phone 390px:
 - sample totals and no sideways scroll
