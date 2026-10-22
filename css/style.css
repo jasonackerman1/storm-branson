@@ -225,8 +225,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
   paint-order: stroke;
   text-anchor: middle;
 }
-.jersey-name { font-size: 12px; letter-spacing: .04em; }
-.jersey-num { font-size: 40px; }
+.jersey-name { letter-spacing: .04em; }
 
 .card-name { font-weight: 700; font-size: 15px; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-amount { font-family: var(--jersey-font); font-size: 24px; margin-top: 2px; font-variant-numeric: tabular-nums; }

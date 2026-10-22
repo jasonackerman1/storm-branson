@@ -244,7 +244,6 @@
   }
   function jerseySVG(p, uid) {
     var last = lastName(p.name);
-    var fit = last.length > 8 ? ' textLength="76" lengthAdjust="spacingAndGlyphs"' : '';
     var waveTop = 'M-60 0 q15 -5 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 L180 130 L-60 130 Z';
     return '<svg class="jersey" viewBox="0 0 120 120" aria-hidden="true">' +
       '<defs><clipPath id="clip-' + uid + '"><path d="' + JERSEY_PATH + '"/></clipPath></defs>' +
@@ -255,10 +254,39 @@
         '</g>' +
       '</g>' +
       '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#3a2f22') + '" stroke-width="2"/>' +
-      '<text class="jersey-name" x="60" y="50"' + fit + '>' + esc(last) + '</text>' +
-      '<text class="jersey-num" x="60" y="94">' + esc(p.number) + '</text>' +
+      '<text class="jersey-name" x="60" y="50" style="font-size:' + textSize.name + 'px">' + esc(last) + '</text>' +
+      '<text class="jersey-num" x="60" y="94" style="font-size:' + textSize.num + 'px">' + esc(p.number) + '</text>' +
       '</svg>';
   }
+  // One name size and one number size for every jersey: the largest that lets
+  // the longest last name (and widest number) fit across the chest.
+  var CHEST_WIDTH = 58, NAME_MAX = 13, NUM_MAX = 40;
+  var textSize = { name: NAME_MAX, num: NUM_MAX };
+  function fitJerseyText() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 120 120');
+    svg.setAttribute('width', '120'); svg.setAttribute('height', '120');
+    svg.style.cssText = 'position:absolute;visibility:hidden;left:-9999px';
+    document.body.appendChild(svg);
+    function widest(cls, size, texts) {
+      return texts.reduce(function (max, t) {
+        var el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        el.setAttribute('class', cls);
+        el.style.fontSize = size + 'px';
+        el.textContent = t;
+        svg.appendChild(el);
+        var w = el.getComputedTextLength();
+        svg.removeChild(el);
+        return Math.max(max, w);
+      }, 0);
+    }
+    var nameW = widest('jersey-name', NAME_MAX, model.players.map(function (p) { return lastName(p.name); }));
+    var numW = widest('jersey-num', NUM_MAX, model.players.map(function (p) { return p.number; }));
+    document.body.removeChild(svg);
+    textSize.name = nameW > CHEST_WIDTH ? +(NAME_MAX * CHEST_WIDTH / nameW).toFixed(2) : NAME_MAX;
+    textSize.num = numW > CHEST_WIDTH ? +(NUM_MAX * CHEST_WIDTH / numW).toFixed(2) : NUM_MAX;
+  }
+
   function animateFills(root) {
     var fills = root.querySelectorAll('.jersey-fill[data-level]');
     requestAnimationFrame(function () {
@@ -308,6 +336,7 @@
     $('stat-avg-sub').textContent = 'Goal ' + money(st.goal) + ' each';
 
     renderDiscount(deposits, n);
+    fitJerseyText();
     renderGrid();
     renderWarnings();
   }
@@ -504,7 +533,10 @@
     if (loading) return;
     loading = true;
     $('refresh').disabled = true;
-    loadRaw().then(function (res) {
+    var fontReady = document.fonts && document.fonts.load
+      ? document.fonts.load('40px Anton').catch(function () {}) : Promise.resolve();
+    Promise.all([loadRaw(), fontReady]).then(function (all) {
+      var res = all[0];
       model = build(res.raw);
       $('sample-banner').hidden = res.source !== 'sample';
       render();
