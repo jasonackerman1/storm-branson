@@ -568,7 +568,6 @@
         '<div class="card-name">' + esc(p.name) + '</div>' +
         '<div class="card-amount">' + money(p.total) + ' <small>/ ' + money(goal) + '</small></div>' +
         '<div class="mini-bar"><div style="width:' + Math.min(100, p.pct * 100) + '%"></div></div>' +
-        (lodging ? '<div class="card-lodging">+ ≈' + money(Math.round(lodgingCost(lodging).total)) + ' family lodging</div>' : '') +
         '</button>';
     }).join('');
     animateFills(grid);
