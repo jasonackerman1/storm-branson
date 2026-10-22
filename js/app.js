@@ -2,12 +2,10 @@
   'use strict';
 
   var CONFIG = window.BRANSON_CONFIG || {};
-  var TABS = {
-    settings: { name: 'Settings', needs: ['goalperplayer'] },
-    players: { name: 'Players', needs: ['name'] },
-    payments: { name: 'Payments', needs: ['player', 'amount'] },
-    sponsors: { name: 'Sponsors', needs: ['player', 'company'] }
-  };
+  // The whole tracker is one tab. Rows with a # are the roster; rows with an
+  // Amount are money received; rows with a Status and no Amount are sponsors
+  // that have been asked but haven't paid yet.
+  var TAB = { name: 'Tracker', needs: ['player', 'number', 'from', 'amount'] };
   var JERSEY_PATH = 'M38 8 L22 13 L3 31 L16 51 L28 43 L28 113 L92 113 L92 43 L104 51 L117 31 L98 13 L82 8 Q60 26 38 8 Z';
   var FILL_TOP = 8, FILL_BOTTOM = 113;
   var STORE_PREFIX = 'storm-branson:';
@@ -78,9 +76,12 @@
     if (field !== '' || row.length) { row.push(field); rows.push(row); }
     return rows;
   }
+  function headerKey(h) {
+    return String(h).trim() === '#' ? 'number' : norm(h).replace(/[^a-z0-9]/g, '');
+  }
   function toObjects(rows) {
     if (!rows.length) return [];
-    var keys = rows[0].map(function (h) { return norm(h).replace(/[^a-z0-9]/g, ''); });
+    var keys = rows[0].map(headerKey);
     return rows.slice(1).map(function (r) {
       var o = {};
       keys.forEach(function (k, i) { if (k) o[k] = (r[i] || '').trim(); });
@@ -90,53 +91,73 @@
     });
   }
 
-  function fetchTab(key) {
-    var tab = TABS[key];
+  function fetchTracker() {
     var url = 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(sheetId) +
-      '/gviz/tq?tqx=out:csv&headers=1&sheet=' + encodeURIComponent(tab.name) + '&_=' + Date.now();
+      '/gviz/tq?tqx=out:csv&headers=1&sheet=' + encodeURIComponent(TAB.name) + '&_=' + Date.now();
     return fetch(url, { cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('The sheet answered with an error (' + res.status + ').');
       return res.text();
     }).then(function (text) {
       if (/^\s*</.test(text)) throw new Error('The sheet isn’t shared as “Anyone with the link can view.”');
-      var objs = toObjects(parseCSV(text));
-      // Google quietly returns the FIRST tab when a tab name doesn't exist,
+      var rows = parseCSV(text);
+      // Google quietly returns the first tab when a tab name doesn't exist,
       // so check the columns we expect are really there.
-      var header = parseCSV(text)[0] || [];
-      var have = header.map(function (h) { return norm(h).replace(/[^a-z0-9]/g, ''); });
-      tab.needs.forEach(function (n) {
-        if (have.indexOf(n) === -1) throw new Error('Couldn’t find the “' + tab.name + '” tab (or its column headers were changed).');
+      var have = (rows[0] || []).map(headerKey);
+      TAB.needs.forEach(function (n) {
+        if (have.indexOf(n) === -1) throw new Error('Couldn’t find the “' + TAB.name + '” tab (or its column headers were changed).');
       });
-      return objs;
+      return toObjects(rows);
     });
   }
 
   function loadRaw() {
     if (!sheetId) return Promise.resolve({ raw: window.BRANSON_SAMPLE, source: 'sample' });
-    var keys = Object.keys(TABS);
-    return Promise.all(keys.map(fetchTab)).then(function (results) {
-      var raw = {};
-      keys.forEach(function (k, i) { raw[k] = results[i]; });
+    return fetchTracker().then(function (rows) {
+      var raw = { rows: rows };
       store('cache:' + sheetId, JSON.stringify({ at: Date.now(), raw: raw }));
       return { raw: raw, source: 'live' };
     }).catch(function (err) {
       var cached = null;
       try { cached = JSON.parse(store('cache:' + sheetId) || 'null'); } catch (e) { cached = null; }
-      if (cached && cached.raw) return { raw: cached.raw, source: 'cache', at: cached.at, error: err };
+      if (cached && cached.raw && cached.raw.rows) return { raw: cached.raw, source: 'cache', at: cached.at, error: err };
       throw err;
     });
   }
 
+  // Split the one-tab rows into roster, money received, and sponsors.
+  function splitRows(rows) {
+    var players = [], payments = [], sponsors = {}, sponsorOrder = [];
+    var rank = { paid: 0, pledged: 1, asked: 2, declined: 3 };
+    rows.forEach(function (r) {
+      if (r.player && r.number) players.push({ number: r.number, name: r.player });
+      if (num(r.amount)) payments.push(r);
+      var isSponsor = r.from && r.player && (norm(r.type) === 'sponsor' || r.status);
+      if (!isSponsor) return;
+      var key = norm(r.player) + '|' + norm(r.from);
+      var status = r.status || (num(r.amount) ? 'Paid' : 'Asked');
+      var cur = sponsors[key];
+      if (!cur) {
+        sponsors[key] = { player: r.player, company: r.from, status: status, notes: num(r.amount) ? '' : (r.notes || '') };
+        sponsorOrder.push(key);
+      } else {
+        if ((rank[norm(status)] != null ? rank[norm(status)] : 2) < (rank[norm(cur.status)] != null ? rank[norm(cur.status)] : 2)) cur.status = status;
+        if (!num(r.amount) && r.notes) cur.notes = [cur.notes, r.notes].filter(Boolean).join(' · ');
+      }
+    });
+    return { players: players, payments: payments, sponsors: sponsorOrder.map(function (k) { return sponsors[k]; }) };
+  }
+
   // ---------- turn sheet rows into totals ----------
   function build(raw) {
-    var s = (raw.settings && raw.settings[0]) || {};
     var settings = {
-      goal: num(s.goalperplayer) || 1000,
-      deposit: num(s.depositamount) || 50,
-      deadline: parseDate(s.depositdeadline),
-      discount: num(s.teamdiscount),
-      trip: s.tripname || 'Ballparks of America, Branson, MO'
+      goal: num(CONFIG.goalPerPlayer) || 1000,
+      deposit: num(CONFIG.depositAmount) || 50,
+      deadline: parseDate(CONFIG.depositDeadline),
+      discount: num(CONFIG.teamDiscount),
+      trip: CONFIG.tripName || 'Ballparks of America, Branson, MO'
     };
+    var rows = raw.rows || [];
+    raw = splitRows(rows);
 
     var players = [], byKey = {};
     (raw.players || []).forEach(function (p) {
@@ -192,10 +213,11 @@
       // once (under Sponsors) instead of again under Money Collected.
       var paid = player.payments.filter(function (p) { return !p.sponsor && norm(p.from) === company; });
       var sponsor = {
-        company: r.company, contact: r.contact || '', status: (r.status || 'Asked').trim(),
-        pledged: num(r.pledgedamount), notes: r.notes || '', payments: paid,
+        company: r.company, contact: '', status: (r.status || 'Asked').trim(),
+        pledged: 0, notes: r.notes || '', payments: paid,
         received: paid.reduce(function (sum, p) { return sum + p.amount; }, 0)
       };
+      if (sponsor.received && norm(sponsor.status) !== 'declined') sponsor.status = 'Paid';
       paid.forEach(function (p) { p.sponsor = sponsor; });
       player.sponsors.push(sponsor);
     });
@@ -229,7 +251,7 @@
 
     var playerMoney = players.reduce(function (s, p) { return s + p.total; }, 0);
     // Test rows from the starter spreadsheet have Notes starting with "SAMPLE".
-    var sampleRows = (raw.payments || []).concat(raw.sponsors || []).filter(function (r) {
+    var sampleRows = rows.filter(function (r) {
       return /^\s*sample\b/i.test(r.notes || '');
     }).length;
     return {
@@ -413,10 +435,11 @@
     var w = model.warnings, lines = [];
     Object.keys(w.payments).forEach(function (name) {
       lines.push(w.payments[name] + ' payment' + (w.payments[name] > 1 ? 's name' : ' names') + ' “' + esc(name) +
-        '”, who isn’t on the Players tab. Counted in the General Fund until the name matches.');
+        '”, who isn’t on the roster (no row with that name and a #). Counted in the General Fund until the name matches.');
     });
     Object.keys(w.sponsors).forEach(function (name) {
-      lines.push('A sponsor row names “' + esc(name) + '”, who isn’t on the Players tab, so it isn’t shown.');
+      if (w.payments[name]) return;   // already flagged above
+      lines.push('A sponsor row names “' + esc(name) + '”, who isn’t on the roster, so it isn’t shown.');
     });
     var el = $('warnings');
     el.hidden = !lines.length;

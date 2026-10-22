@@ -6,5 +6,12 @@
 window.BRANSON_CONFIG = {
   sheetId: '',
   // How often an open page re-checks the sheet, in seconds.
-  refreshSeconds: 60
+  refreshSeconds: 60,
+
+  // Trip settings. These rarely change, so they live here, not in the sheet.
+  goalPerPlayer: 1000,
+  depositAmount: 50,
+  depositDeadline: '',   // e.g. '3/1/2027' — the countdown shows once this is set
+  teamDiscount: 100,
+  tripName: 'Ballparks of America, Branson, MO'
 };

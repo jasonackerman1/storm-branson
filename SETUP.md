@@ -1,43 +1,34 @@
 # Connecting the dashboard to the team's Google Sheet
 
-This takes about 5 minutes and only has to be done once.
+About 5 minutes, one time.
 
-## 1. Put the template in Google Drive
-1. Go to [drive.google.com](https://drive.google.com) and sign in with the account that should **own** the tracker.
-2. Click **+ New → File upload** and pick `template/Storm-Branson-Tracker-with-sample-data.xlsx` from this folder.
-   It has the real roster and settings, plus made-up SAMPLE payments and sponsors so you can check the connection.
-   (`Storm-Branson-Tracker-blank.xlsx` is the same thing with no money rows, if you'd rather skip the test.)
-3. Double-click the uploaded file. It opens in Google Sheets.
-4. **Important:** click **File → Save as Google Sheets**. That makes a real Google Sheet copy, which opens in a new tab.
-   The dashboard can't read the uploaded `.xlsx` version, so use the new copy from here on and delete the `.xlsx` from Drive.
+## 1. Put the file in Google Drive
+1. At [drive.google.com](https://drive.google.com), click **+ New → File upload** and pick `template/Storm-Branson-Tracker-with-sample-data.xlsx`.
+   It has the real roster plus made-up SAMPLE rows for testing. (`Storm-Branson-Tracker-blank.xlsx` is just the roster.)
+2. Open it, then click **File → Save as Google Sheets**. Use that new copy from here on, and delete the `.xlsx` from Drive.
+   The dashboard can't read the uploaded `.xlsx` itself.
 
 ## 2. Share it
-1. In the new Google Sheet, click **Share** (top right).
-2. Under **General access**, change "Restricted" to **Anyone with the link**, and leave the role as **Viewer**.
-   This is what lets the dashboard read the numbers. People can only *see* the sheet, not change it.
-3. In the "Add people" box at the top, add the organizers' emails as **Editor** so they can enter payments.
-4. Click **Done**.
+**Share → General access → Anyone with the link → Viewer.** Then add the organizers by email as **Editor**.
 
-## 3. Connect the dashboard
-1. Copy the sheet's ID from the address bar. It's the long part between `/d/` and `/edit`:
-   `https://docs.google.com/spreadsheets/d/`**`1AbC...xyz`**`/edit`
-2. **To test right away:** open the dashboard with `?sheet=` and the ID on the end of its address:
-   `.../index.html?sheet=1AbC...xyz`
-3. **To make it permanent:** paste the ID into `js/config.js` between the quotes on the `sheetId:` line (or send it to Claude to do).
-   The yellow "Sample data" banner disappears once it's reading the real sheet.
+## 3. Connect
+Copy the sheet's link and send it to Claude. To test it yourself, add `?sheet=` and the ID (the long part between `/d/` and `/edit`) to the end of the dashboard's address.
 
-## 4. Check it, then delete the sample rows
-1. Open the dashboard. Its numbers should match the sample payments in the sheet, and a yellow banner should say the sheet still has SAMPLE rows.
-2. In the sheet, go to **Payments**, select every sample row (row 2 down to the last one), right-click, and choose **Delete rows**. Do the same on **Sponsors**.
-   Leave **Players** and **Settings** alone. Those are real.
-3. Refresh the dashboard. Everything goes to $0 and the yellow banner disappears. Now it's ready to share.
+## 4. Check it, then clear the samples
+Check that the dashboard matches the sheet. Then delete every row whose Notes say **SAMPLE**, and keep the roster rows at the top. The yellow banner on the dashboard goes away once they're gone.
 
-## How the organizers use it
-- **Payments tab:** one row per check, Venmo, or cash payment. Pick the player from the dropdown, or leave Player blank for a general donation.
-  Pick Type **Deposit** for the $50 commitment deposit. That's how the dashboard knows a player's deposit is in.
-- **Table collections** (a few boys at a Dunkin' Donuts table, say): split the money and add one Payments row per boy with his share, Type **Fundraiser**. It shows under each boy's **Money collected**.
-- **Sponsors tab:** the companies each player is asking. When a sponsor's money arrives, also add it on Payments, with the same company name in **From**, so it shows under that player's **Sponsors** (and not twice). A company payment with Type **Sponsor** shows under Sponsors even if nobody added it to the Sponsors tab.
-- **Settings tab:** type the deposit deadline (like `3/1/2027`) once it's known, and the dashboard starts a countdown.
-- Don't rename the tabs or the row-1 headers. If a name on Payments doesn't match the Players tab, the dashboard shows a "For the organizers" note at the bottom of the page.
+## How it works (one tab: "Tracker")
+| Row | What to fill in |
+|---|---|
+| **Player on the roster** | Player + **#**. These are the rows at the top; add a row to add a player. |
+| **Money received** | Player, Date, From, **Amount**, Method, Type. Leave Player blank for a team-wide donation. |
+| **Deposit** | Same as money, with Type **Deposit**. That's how the dashboard marks the deposit in. |
+| **Sponsor being asked** | Player, From (the company), Type **Sponsor**, Status (Asked / Pledged / Declined). No Amount. |
+| **Sponsor pays** | Fill in Date, Amount, and Method on that same sponsor row. It switches to Paid. |
+| **Table collection** | One row per boy with his share, Type **Fundraiser**, and a note like "Split with Jake ($125 total)". |
 
-The dashboard re-reads the sheet every time it's opened, every minute while it's open, and when someone taps **Refresh**. Google can take a few seconds to a minute to reflect a new edit.
+Hover over any column header in the sheet for a reminder. Keep each player's name spelled the same as on his roster row. The dashboard flags any name it doesn't recognize at the bottom of the page.
+
+Goal, deposit amount, team discount, and the deposit deadline are set in `js/config.js`, not the sheet.
+
+The dashboard re-reads the sheet when it opens, every minute while it's open, and on **Refresh**.

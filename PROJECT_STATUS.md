@@ -31,16 +31,21 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 ## Hosting + starter spreadsheets (2026-10-22)
 - **Live at https://jasonackerman1.github.io/storm-branson/**: public repo `jasonackerman1/storm-branson`, GitHub Pages from `main` (same pattern as Storm, with `.nojekyll`). There's no build step and no service worker, so a push is live as soon as Pages rebuilds.
 - Two starter files in `template/`. **`Storm-Branson-Tracker-with-sample-data.xlsx`** (recommended) has the real roster and settings, plus the sample payments and sponsors, each with Notes starting "SAMPLE - delete this row". **`Storm-Branson-Tracker-blank.xlsx`** has no money rows.
-- Jason asked for duplicate sample and blank tabs. That would break the tab-name lookup, so the workflow is instead: upload the sample file, connect, check, then delete the SAMPLE rows on Payments and Sponsors.
+- Jason asked for duplicate sample and blank tabs. That would break the tab-name lookup, so the workflow is instead: upload the sample file, connect, check, then delete the SAMPLE rows (the roster rows stay).
 - While the live sheet still has any SAMPLE rows, the dashboard shows a yellow banner ("The sheet still has N SAMPLE rows · delete them before sharing").
 
-## Data (Google Sheet), built by `tools/build_template.py` → `template/*.xlsx`
-- **Settings:** one row, one setting per column (Goal Per Player, Deposit Amount, Deposit Deadline, Team Discount, Trip Name).
-- **Players:** Number (plain text, so `?` survives), Name. Pre-filled with the 14 current Storm players.
-- **Payments:** Date, Player (dropdown, blank = General Fund), From, Amount, Method, Type (Deposit/Sponsor/Family/Fundraiser/Other), Notes.
-- **Sponsors:** Player, Company, Contact, Status, Pledged Amount, Notes.
-- Read through Google's `gviz` CSV export, which needs "Anyone with the link can view."
-  **Gotcha:** gviz drops any value whose type doesn't match the rest of its column. That's why Settings is a single row and Players.Number is a text column.
+## Data: ONE tab, "Tracker" (simplified 2026-10-22), built by `tools/build_template.py` → `template/*.xlsx`
+- Jason found four tabs plus long instructions too much, so it's now one tab: **Player | # | Date | From | Amount | Method | Type | Status | Notes**.
+  - Rows with a **#** are the roster (at the top, shaded).
+  - Rows with an **Amount** are money received. A blank Player means the General Fund.
+  - **Sponsor** rows with a Status and no Amount are companies that have been asked. When they pay, the Amount goes on the same row, and the row shows as Paid.
+  - Pledged amounts go in Notes.
+- Settings (goal, deposit, discount, deadline, trip name) moved to `js/config.js`. The instructions became hover notes on the headers.
+- In the app, `splitRows()` turns the one tab into the same players, payments, and sponsors the rest of the code already used. The sample totals and popups are identical to the four-tab version.
+- Gotchas:
+  - The `#` column is plain text so `?` survives, because gviz blanks values whose type doesn't match the column.
+  - The page checks the headers, because Google returns the first tab for an unknown tab name.
+  - The Player column has no dropdown (there's no separate roster to point it at). Google's autocomplete helps, and the page flags unknown names.
 - Jason chose an unlisted link (no login), so anyone with the dashboard link can see names, totals, and sponsors.
 
 ## Setup
@@ -60,5 +65,5 @@ Zero console errors. **Not yet tested against a real Google Sheet.**
 
 ## Open
 - Jason to test the prototype.
-- Jason uploads the sample-data file (SETUP.md), shares it, and sends the link. Then put the ID in `js/config.js`, push, check the numbers against the sheet, and have him delete the SAMPLE rows. **First real-Google test of the gviz read.**
+- Jason uploads the sample-data file (SETUP.md), shares it, and sends the link. Then put the ID in `js/config.js`, push, check the numbers against the sheet, and have him delete the SAMPLE rows. Deposit deadline goes in `js/config.js` when he has it. **First real-Google test of the gviz read.**
 - Deposit deadline date (TBD).
