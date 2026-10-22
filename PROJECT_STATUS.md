@@ -24,6 +24,10 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 - Both section headers show their subtotal, and the two add up to the player's total. The General Fund popup uses Money Collected too.
 - Table collections (e.g. two boys at a Dunkin' Donuts table): one Payments row per boy with his share, Type Fundraiser. This is explained in the template's Instructions tab and in SETUP.md. Sample data has an example (Owen/Jake, $62.50 each).
 
+## Jersey text consistency (2026-10-22)
+- Every jersey now uses one last-name size and one number size, measured in Anton so the longest name (VAN TASSEL) fits across the chest. Before this, only names over 8 letters were squeezed.
+- Jason asked whether the jersey shape uses too much space. The layout is the reason, not the shape: about 254px per card, 2 per row on a phone. He was offered compact rows or smaller cards and chose to **keep the big jersey cards as is**.
+
 ## Data (Google Sheet), built by `tools/build_template.py` → `template/Storm-Branson-Tracker.xlsx`
 - **Settings:** one row, one setting per column (Goal Per Player, Deposit Amount, Deposit Deadline, Team Discount, Trip Name).
 - **Players:** Number (plain text, so `?` survives), Name. Pre-filled with the 14 current Storm players.
