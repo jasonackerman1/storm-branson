@@ -1,0 +1,40 @@
+name: Check Ballparks of America pages
+
+# Once a week, compare the Ballparks of America pages that "Know Before You Go"
+# is based on (event page, Registered Teams, FAQ, Prep Kit links) with last
+# week's copy in data/boa/. Opens an issue (GitHub emails you) showing the old
+# and new wording if anything changed. Closer to the trip, switch the schedule
+# to daily: '23 13 * * *'.
+on:
+  schedule:
+    - cron: '23 13 * * 1'   # Mondays, about 9am Eastern
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare the pages
+        run: python3 tools/check_boa.py
+      - name: Save the new copies and check date
+        run: |
+          if [ -n "$(git status --porcelain -- data/boa data/boa-check.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+            git add data/boa data/boa-check.json
+            git commit -m "Ballparks of America weekly check"
+            git push
+          fi
+      - name: Email an alert
+        if: hashFiles('boa_alert.txt') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "Ballparks of America pages changed" --body-file boa_alert.txt

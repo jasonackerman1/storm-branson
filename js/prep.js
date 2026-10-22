@@ -8,3 +8,20 @@
     else if (!current) { current = li; li.classList.add('next'); }
   });
 })();
+
+// "Last checked" note: a weekly GitHub Action compares this section's sources
+// on ballparksofamerica.com and records the date in data/boa-check.json.
+(function () {
+  var el = document.getElementById('prep-checked');
+  if (!el || !window.fetch) return;
+  fetch('data/boa-check.json?_=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d || !d.lastChecked) return;
+      var day = new Date(d.lastChecked + 'T00:00:00');
+      el.textContent = 'Checked against ballparksofamerica.com weekly · last checked ' +
+        day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      el.hidden = false;
+    })
+    .catch(function () {});
+})();

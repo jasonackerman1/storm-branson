@@ -598,6 +598,7 @@ body { position: relative; }
 .prep-card li strong { color: var(--text); }
 .prep-contact { font-size: 13px; color: var(--text-dim); margin: 14px 0 0; }
 .prep-contact a { color: var(--accent); }
+.prep-checked { font-size: 12px; color: var(--text-dim); margin: 6px 0 0; }
 @media (max-width: 640px) { .prep-grid { grid-template-columns: 1fr; } }
 .prep-downloads { display: flex; gap: 8px; flex-wrap: wrap; }
 .prep-download.alt { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
