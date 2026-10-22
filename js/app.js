@@ -338,8 +338,8 @@
       '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#000') + '" stroke-opacity="' + (p.full ? 1 : .8) + '" stroke-width="1.2" stroke-linejoin="round"/>' +
       JERSEY_COLLAR +
       '<text class="jersey-name" style="font-size:' + textSize.name + 'px"><textPath href="#arc-' + uid + '" startOffset="50%">' + esc(last) + '</textPath></text>' +
-      '<text class="jersey-num-edge" x="60" y="87" style="' + numStyle + '">' + num + '</text>' +
-      '<text class="jersey-num" x="60" y="87" style="' + numStyle + '">' + num + '</text>' +
+      '<text class="jersey-num-edge" x="60" y="82" style="' + numStyle + '">' + num + '</text>' +
+      '<text class="jersey-num" x="60" y="82" style="' + numStyle + '">' + num + '</text>' +
       '</svg>';
   }
   // One name size and one number size for every jersey: the largest that lets
