@@ -28,7 +28,13 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 - Every jersey now uses one last-name size and one number size, measured in Anton so the longest name (VAN TASSEL) fits across the chest. Before this, only names over 8 letters were squeezed.
 - Jason asked whether the jersey shape uses too much space. The layout is the reason, not the shape: about 254px per card, 2 per row on a phone. He was offered compact rows or smaller cards and chose to **keep the big jersey cards as is**.
 
-## Data (Google Sheet), built by `tools/build_template.py` → `template/Storm-Branson-Tracker.xlsx`
+## Hosting + starter spreadsheets (2026-10-22)
+- **Live at https://jasonackerman1.github.io/storm-branson/**: public repo `jasonackerman1/storm-branson`, GitHub Pages from `main` (same pattern as Storm, with `.nojekyll`). There's no build step and no service worker, so a push is live as soon as Pages rebuilds.
+- Two starter files in `template/`. **`Storm-Branson-Tracker-with-sample-data.xlsx`** (recommended) has the real roster and settings, plus the sample payments and sponsors, each with Notes starting "SAMPLE - delete this row". **`Storm-Branson-Tracker-blank.xlsx`** has no money rows.
+- Jason asked for duplicate sample and blank tabs. That would break the tab-name lookup, so the workflow is instead: upload the sample file, connect, check, then delete the SAMPLE rows on Payments and Sponsors.
+- While the live sheet still has any SAMPLE rows, the dashboard shows a yellow banner ("The sheet still has N SAMPLE rows · delete them before sharing").
+
+## Data (Google Sheet), built by `tools/build_template.py` → `template/*.xlsx`
 - **Settings:** one row, one setting per column (Goal Per Player, Deposit Amount, Deposit Deadline, Team Discount, Trip Name).
 - **Players:** Number (plain text, so `?` survives), Name. Pre-filled with the 14 current Storm players.
 - **Payments:** Date, Player (dropdown, blank = General Fund), From, Amount, Method, Type (Deposit/Sponsor/Family/Fundraiser/Other), Notes.
@@ -54,6 +60,5 @@ Zero console errors. **Not yet tested against a real Google Sheet.**
 
 ## Open
 - Jason to test the prototype.
-- Create the real Google Sheet and connect it.
-- Decide hosting: likely a new GitHub Pages repo `jasonackerman1/storm-branson`, like Storm.
+- Jason uploads the sample-data file (SETUP.md), shares it, and sends the link. Then put the ID in `js/config.js`, push, check the numbers against the sheet, and have him delete the SAMPLE rows. **First real-Google test of the gviz read.**
 - Deposit deadline date (TBD).
