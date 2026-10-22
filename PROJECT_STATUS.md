@@ -7,6 +7,18 @@ A live fundraising dashboard for the Storm 11U trip to the Ballparks of America 
 
 Organizers enter money by hand in a Google Sheet. This page reads that sheet live every time it loads, every 60s while it's open, and when it comes back to the foreground.
 
+## Where things stand (checkpoint 2026-10-22)
+**Live:** https://jasonackerman1.github.io/storm-branson/, reading the real team sheet. Today's work is all pushed (latest: fact-check fixes). The daily lodging price check is running on GitHub Actions (first run succeeded).
+
+**Roster:** all 14 still count. Lyons may be too old for 12U (April 30 cut-off), Harris is out (Cooperstown guest player), Liam P. is unsure, and Mason's brother Nolan might join. Jason's plan is to remove or add rows in the sheet once it's settled, with no tags. Ballparks' minimum is 11 players + 2 coaches; the max is 14 players + 4 coaches.
+
+**Next / open questions for the coach:**
+1. Did the team put down its Ballparks deposit before 9/30 ($500) or after ($1,000)? This changes the Nov 30 target in `js/config.js`.
+2. The real payment schedule and unmet-rooms fee from the team's EventConnect dashboard (Ballparks' site conflicts: $2,500/$2,500 vs $3,000/$3,000, and $1,000 vs $800).
+3. The team's $50-per-player deposit deadline (stat card still says "Deadline TBD"); set `depositDeadline` in `js/config.js`.
+4. 4 vs 5 family lodging nights (the last day's games run to 11pm; a 5-night stay showed 0 block rooms left).
+5. Swap in the 2027 prep kits when Ballparks posts them.
+
 ## Banner, trip header, payments, lodging, prep kit (2026-10-22)
 - **Background video:** Ballparks of America's own Vimeo video (`1196142378`, "What is Ballparks of America", background mode, muted/looping) sits behind the top of the page in `#page-bg`, keeps its 16:9 ratio (cover-cropped, centered) and is sized by `js/banner.js` to end just above "The Breakdown", with a dark tint fading to black. Their panorama photo (Storyblok URL) shows first; the video only fades in once Vimeo reports it's actually playing, so the area is never empty and a no-autoplay phone just keeps the photo. Skipped for reduced-motion and Save-Data. Headless Chrome gets Vimeo's bot block unless it uses a normal user agent (testing note only).
 - **Header is the trip:** Storm wordmark + "Hudson Valley, NY" on the left, a gold dotted route with a rolling baseball (`img/baseball.svg`), "N days to Branson" countdown and "About 1,200 miles" in the middle, "Road to" + the Ballparks of America logo (`img/boa-logo.svg`, their primary logo, saved locally) + event name/dates on the right. "Road to Branson" stays in the page as screen-reader text. Mileage is a ballpark (about 1,200–1,250 driving).
