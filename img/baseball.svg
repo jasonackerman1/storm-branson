@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <circle cx="24" cy="24" r="22.5" fill="#fff" stroke="#d9d2c6" stroke-width="1.5"/>
+  <g fill="none" stroke="#d00018" stroke-linecap="round">
+    <!-- seams -->
+    <path d="M13 5.5 C20 14 20 34 13 42.5" stroke-width="1.4"/>
+    <path d="M35 5.5 C28 14 28 34 35 42.5" stroke-width="1.4"/>
+    <!-- stitches, angled across each seam -->
+    <path d="M13.3 9.5 l4 -1.2 M15.2 13.5 l4 -0.6 M16.2 18 l4 -0.2 M16.6 22.5 l4 0 M16.6 27 l4 0.2 M16.2 31.5 l4 0.6 M15.2 36 l4 1.2" stroke-width="1.6"/>
+    <path d="M34.7 9.5 l-4 -1.2 M32.8 13.5 l-4 -0.6 M31.8 18 l-4 -0.2 M31.4 22.5 l-4 0 M31.4 27 l-4 0.2 M31.8 31.5 l-4 0.6 M32.8 36 l-4 1.2" stroke-width="1.6"/>
+  </g>
+</svg>

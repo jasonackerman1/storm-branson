@@ -1,0 +1,15 @@
+{
+  "hotel": "The Suites at Fall Creek by Diamond Resorts",
+  "room": "2 Bedroom Condo; 2 Queen Beds with Queen Sofa Bed",
+  "checkIn": "2027-07-29",
+  "checkOut": "2027-08-02",
+  "nights": 4,
+  "avgNightly": 177.0,
+  "quotedAvg": 177,
+  "resortFeePerNight": 12.0,
+  "taxPercent": 12.35,
+  "roomsLeft": 14,
+  "soldOut": false,
+  "bookBy": "2027-06-28",
+  "url": "https://app.eventconnect.io/events/46760/hotels"
+}

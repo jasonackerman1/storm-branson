@@ -7,27 +7,49 @@
   <title>Road to Branson</title>
   <link rel="icon" type="image/png" href="img/tornado.png">
   <link rel="apple-touch-icon" href="img/icon-180.png">
-  <link rel="stylesheet" href="css/style.css?v=20261022c">
+  <link rel="preload" as="image" href="https://a.storyblok.com/f/287282975935756/59898cda29/boa_panorama.png/m/1600x0/filters:quality(60):format(webp)">
+  <link rel="stylesheet" href="css/style.css?v=20261022m">
 </head>
 <body>
+  <div class="page-bg" id="page-bg" aria-hidden="true"><div class="banner-media" id="banner-media"></div></div>
   <div id="sample-banner" class="sample-banner" hidden>Sample data · not the real numbers yet</div>
 
-  <header class="top">
-    <img class="wordmark" src="img/storm-wordmark.png" alt="Storm">
-    <div class="top-titles">
-      <h1>Road to Branson</h1>
-      <p id="trip-name" class="trip-name">Ballparks of America, Branson, MO</p>
+  <div class="banner" id="banner">
+    <div class="banner-content">
+      <header class="top">
+        <h1 class="sr-only">Road to Branson</h1>
+        <p id="trip-name" class="sr-only">Ballparks of America, Branson, MO</p>
+        <div class="route-end route-from">
+          <img class="wordmark" src="img/storm-wordmark.png" alt="Storm">
+          <span class="route-place">Hudson Valley, NY</span>
+        </div>
+        <div class="route" aria-hidden="true">
+          <div class="route-track"><span class="route-ball"></span></div>
+          <span class="route-countdown" id="route-countdown"></span>
+          <span class="route-miles">About 1,200 miles</span>
+        </div>
+        <div class="route-end route-to">
+          <span class="road-to">Road to</span>
+          <img class="boa-logo" src="img/boa-logo.svg" alt="Ballparks of America, Branson, Missouri">
+          <span class="event-name" id="event-name"></span>
+          <span class="event-dates" id="event-dates"></span>
+        </div>
+      </header>
+
+      <section class="hero" aria-live="polite">
+        <div class="hero-label">Raised so far</div>
+        <div id="grand-total" class="grand-total">$0</div>
+        <div class="hero-goal"><span id="team-pct">0%</span> of the <span id="team-goal">$0</span> team goal</div>
+        <div class="team-bar-wrap">
+          <div class="team-bar"><div id="team-bar-fill" class="team-bar-fill"></div></div>
+          <div id="team-marks" class="team-marks" aria-hidden="true"></div>
+        </div>
+        <p id="team-next" class="team-next"></p>
+      </section>
     </div>
-  </header>
+  </div>
 
   <main>
-    <section class="hero" aria-live="polite">
-      <div class="hero-label">Raised so far</div>
-      <div id="grand-total" class="grand-total">$0</div>
-      <div class="hero-goal"><span id="team-pct">0%</span> of the <span id="team-goal">$0</span> team goal</div>
-      <div class="team-bar"><div id="team-bar-fill" class="team-bar-fill"></div></div>
-    </section>
-
     <section class="stats">
       <div class="stat">
         <div class="stat-value"><span id="stat-deposits">0</span><small id="stat-deposits-of">/0</small></div>
@@ -72,6 +94,75 @@
     <section id="grid" class="grid" aria-label="Players"></section>
 
     <div id="warnings" class="warnings" hidden></div>
+
+    <section class="prep" aria-labelledby="prep-title">
+      <div class="prep-head">
+        <h2 id="prep-title">Know Before You Go</h2>
+        <a class="prep-download" href="https://content.ballparksofamerica.app/26-BofA-Parents-Prep-Kit-FIVE-DAY-FINAL-5-21-Updated-QR-Codes.pdf" target="_blank" rel="noopener" download>
+          <span aria-hidden="true">⬇</span> Parents Prep Kit (PDF)
+        </a>
+      </div>
+      <p class="prep-note">Highlights from Ballparks of America’s five-day Parents Prep Kit. This is the Summer 2026 edition; the 2027 kit is “coming soon,” so days and times may shift.</p>
+
+      <div class="prep-grid">
+        <div class="prep-card">
+          <h3>🏨 Family lodging</h3>
+          <ul>
+            <li>Families must book through <strong>EventConnect</strong>, the official housing partner.</li>
+            <li>The team has to book at least <strong>8 rooms every night</strong> of the tournament, or pay a $1,000 fee.</li>
+            <li>Players and coaches stay in the team suites on campus.</li>
+          </ul>
+        </div>
+        <div class="prep-card">
+          <h3>📱 Stay connected</h3>
+          <ul>
+            <li>Get the <strong>Ballparks of America – EC</strong> app for schedules and scores.</li>
+            <li>Weather delays and updates come by text and email from EventConnect, so keep your contact info current.</li>
+            <li>The schedule posts 7 days before and isn’t final until the night before game one.</li>
+            <li>Every game streams live on <strong>HiCast Sports</strong> for family back home.</li>
+          </ul>
+        </div>
+        <div class="prep-card">
+          <h3>🧢 Packing for players</h3>
+          <ul>
+            <li>Uniform, belt, socks, hats, glove, bat, cup, catcher’s gear</li>
+            <li><strong>Molded cleats only</strong> (no metal), turf shoes for pitching</li>
+            <li><strong>Twin XL sheets</strong>, blanket and pillow (or rent them)</li>
+            <li>Towel, shower shoes, toiletries, sunscreen, bug spray, meds</li>
+            <li>Swim trunks, beach towel, laundry bag and detergent</li>
+            <li>Blitzball and wiffle ball gear for the late-night games</li>
+          </ul>
+        </div>
+        <div class="prep-card">
+          <h3>💳 Money on campus</h3>
+          <ul>
+            <li>The campus is <strong>cashless</strong>. Cash is only taken at the Pro Shop.</li>
+            <li>A preloaded <strong>campus gift card</strong> is the easiest way for players to buy food and fun. You can set limits and reload it.</li>
+            <li>Extras you can add through EventConnect: bedding, trading cards, photos, shirts, family event meals, Silver Dollar City and White Water tickets, gear rentals.</li>
+          </ul>
+        </div>
+        <div class="prep-card">
+          <h3>🚫 Campus rules</h3>
+          <ul>
+            <li><strong>No gum or sunflower seeds</strong> anywhere on campus. It can get a player, coach or fan ejected.</li>
+            <li>No outside alcohol (coolers are fine), no smoking or vaping, no grills.</li>
+            <li>No bikes, scooters, skateboards or Heelys.</li>
+            <li>Leashed pets are OK outdoors, but not on the fields.</li>
+            <li>Players must always be with at least one other player.</li>
+          </ul>
+        </div>
+        <div class="prep-card">
+          <h3>⚾ The week</h3>
+          <ul>
+            <li>Day 1: check-in, Media Day, Welcome Dinner, trading card swap, then <strong>Opening Ceremonies</strong> at St. Louis Stadium. Families arrive around 7:45pm.</li>
+            <li>Skills competitions and a Players (and Moms!) Home Run Derby</li>
+            <li>Pool play, then bracket play and the championship on the last day</li>
+            <li>Field lights stay on until about midnight for pickup games</li>
+          </ul>
+        </div>
+      </div>
+      <p class="prep-contact">Questions: Ballparks of America Guest Services, <a href="tel:+14174646333">(417) 464-6333</a> · <a href="mailto:hospitality@ballparksofamerica.com">hospitality@ballparksofamerica.com</a></p>
+    </section>
   </main>
 
   <footer class="foot">
@@ -87,8 +178,9 @@
     </div>
   </div>
 
-  <script src="js/config.js?v=20261022c"></script>
-  <script src="js/sample-data.js?v=20261022c"></script>
-  <script src="js/app.js?v=20261022c"></script>
+  <script src="js/config.js?v=20261022m"></script>
+  <script src="js/sample-data.js?v=20261022m"></script>
+  <script src="js/app.js?v=20261022m"></script>
+  <script src="js/banner.js?v=20261022m"></script>
 </body>
 </html>

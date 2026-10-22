@@ -206,7 +206,9 @@
       deposit: num(CONFIG.depositAmount) || 50,
       deadline: parseDate(CONFIG.depositDeadline),
       discount: num(CONFIG.teamDiscount),
-      trip: CONFIG.tripName || 'Ballparks of America, Branson, MO'
+      trip: CONFIG.tripName || 'Ballparks of America, Branson, MO',
+      event: CONFIG.event || null,
+      teamPayments: CONFIG.teamPayments || []
     };
     var rows = raw.rows || [];
     raw = splitRows(rows);
@@ -438,10 +440,70 @@
     $('stat-avg').textContent = money(n ? Math.round(m.playerMoney / n) : 0);
     $('stat-avg-sub').textContent = 'Goal ' + money(st.goal) + ' each';
 
+    renderTrip();
+    renderPaymentMarks();
     renderDiscount(deposits, n);
     fitJerseyText();
     renderGrid();
     renderWarnings();
+  }
+
+  function daysUntil(d) {
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((d - today) / 86400000);
+  }
+
+  // Countdown on the route, event name and dates under the Ballparks logo.
+  function renderTrip() {
+    var ev = model.settings.event;
+    if (!ev) return;
+    var start = parseDate(ev.start), end = parseDate(ev.end);
+    $('event-name').textContent = ev.name || '';
+    if (start && end) {
+      var sameMonth = start.getMonth() === end.getMonth();
+      $('event-dates').textContent = shortDate(start) + ' – ' +
+        (sameMonth ? end.getDate() : shortDate(end)) + ', ' + end.getFullYear();
+    }
+    var el = $('route-countdown');
+    if (!start) { el.hidden = true; return; }
+    var days = daysUntil(start), toEnd = end ? daysUntil(end) : days;
+    if (days > 1) el.innerHTML = '<b>' + days + '</b> days to Branson';
+    else if (days === 1) el.innerHTML = '<b>1</b> day to Branson';
+    else if (toEnd >= 0) el.innerHTML = '<b>Game time!</b>';
+    else el.innerHTML = '<b>We made it!</b>';
+  }
+
+  // Team payment due dates as marks on the team bar, plus the next one due.
+  function renderPaymentMarks() {
+    var m = model, list = m.settings.teamPayments, goal = m.teamGoal;
+    var marks = $('team-marks'), next = $('team-next');
+    var running = 0, points = [];
+    list.forEach(function (pay) {
+      var before = running;
+      // "The rest" is whatever is left of the team goal after the earlier payments.
+      running = pay.amount === 'rest' ? goal : running + (num(pay.amount) || 0);
+      points.push({ label: pay.label, amount: Math.max(0, Math.min(running, goal) - before),
+        need: Math.min(running, goal), due: parseDate(pay.due) });
+    });
+    var dated = points.filter(function (pt) { return pt.due; });
+    if (!dated.length || !goal) { marks.innerHTML = ''; next.hidden = true; return; }
+
+    marks.innerHTML = dated.map(function (pt) {
+      var pos = Math.min(100, pt.need / goal * 100);
+      var met = m.grandTotal >= pt.need, late = !met && daysUntil(pt.due) < 0;
+      return '<div class="team-mark' + (met ? ' met' : '') + (late ? ' late' : '') + (pos >= 99 ? ' end' : '') +
+        '" style="left:' + pos + '%"><i></i><span>' + esc(shortDate(pt.due)) + '<br>' + money(pt.need) + '</span></div>';
+    }).join('');
+
+    var upcoming = dated.filter(function (pt) { return daysUntil(pt.due) >= 0; })[0];
+    next.hidden = false;
+    if (!upcoming) { next.innerHTML = 'All team payment dates have passed.'; return; }
+    var gap = upcoming.need - m.grandTotal, days = daysUntil(upcoming.due);
+    var when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : 'in ' + days + ' days';
+    next.innerHTML = '<strong>Next team payment:</strong> ' + money(upcoming.amount) + ' due ' +
+      esc(shortDate(upcoming.due)) + ' (' + when + '). ' +
+      (gap > 0 ? 'The team needs ' + money(upcoming.need) + ' raised by then, <strong>' + money(gap) + ' to go</strong>.'
+               : '<strong class="ok">The team is on pace ✓</strong>');
   }
 
   function deadlineText(d) {
@@ -456,10 +518,10 @@
 
   function renderDiscount(deposits, n) {
     var el = $('discount'), st = model.settings;
-    if (!n) { el.hidden = true; return; }
+    if (!n || !st.discount) { el.hidden = true; return; }
     el.hidden = false;
     var by = st.deadline ? ' by ' + st.deadline.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : '';
-    var off = st.discount ? money(st.discount) + ' off' : 'the discounted price';
+    var off = money(st.discount) + ' off';
     if (deposits >= n) {
       el.className = 'discount won';
       el.innerHTML = '🎉 <strong>All ' + n + ' deposits are in.</strong> Team discount: ' + esc(off) + ' for every player!';
@@ -501,6 +563,7 @@
         '<div class="card-name">' + esc(p.name) + '</div>' +
         '<div class="card-amount">' + money(p.total) + ' <small>/ ' + money(goal) + '</small></div>' +
         '<div class="mini-bar"><div style="width:' + Math.min(100, p.pct * 100) + '%"></div></div>' +
+        (lodging ? '<div class="card-lodging">+ ≈' + money(Math.round(lodgingCost(lodging).total)) + ' family lodging</div>' : '') +
         '</button>';
     }).join('');
     animateFills(grid);
@@ -605,6 +668,7 @@
         '</div>' +
         sectionHead('Sponsors', p.sponsorTotal) + sponsorRows(p.sponsors) +
         sectionHead('Money collected', p.collectedTotal) + paymentRows(p.collected) +
+        lodgingSection() +
       '</div>'
     );
   }
@@ -635,6 +699,41 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
+  // ---------- family lodging (data/lodging.json, refreshed daily by a GitHub Action) ----------
+  var lodging = null;
+  function loadLodging() {
+    return fetch('data/lodging.json?_=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .catch(function () { return null; });
+  }
+  function lodgingCost(l) {
+    var rooms = l.avgNightly * l.nights, fees = l.resortFeePerNight * l.nights;
+    var tax = (rooms + fees) * l.taxPercent / 100;
+    return { rooms: rooms, fees: fees, tax: tax, total: rooms + fees + tax };
+  }
+  function lodgingSection() {
+    if (!lodging) return '';
+    var l = lodging, c = lodgingCost(l);
+    var ci = parseDate(l.checkIn), co = parseDate(l.checkOut);
+    var changed = l.quotedAvg && l.avgNightly !== l.quotedAvg
+      ? '<p class="lodging-note warn">The price has changed: it was ' + money(l.quotedAvg) + ' a night when we first checked.</p>' : '';
+    var row = function (label, amt) { return '<div class="lodging-row"><span>' + label + '</span><span>' + money(Math.round(amt)) + '</span></div>'; };
+    return '<h4><span>Family lodging estimate</span><span class="h4-total">≈ ' + money(Math.round(c.total)) + '</span></h4>' +
+      '<div class="lodging">' +
+        '<p class="lodging-where"><strong>' + esc(l.room.replace(';', ',')) + '</strong><br>' + esc(l.hotel) +
+          ' · fits a family of four</p>' +
+        row(money(l.avgNightly) + ' a night × ' + l.nights + ' nights (' + esc(shortDate(ci)) + ' – ' + esc(shortDate(co)) + ')', c.rooms) +
+        row('Resort fee, ' + money(l.resortFeePerNight) + ' a night', c.fees) +
+        row('Tax, ' + l.taxPercent + '%', c.tax) +
+        changed +
+        '<p class="lodging-note">Not part of the ' + money(model.settings.goal) + ' bucket. Families book through ' +
+          '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">EventConnect</a>' +
+          (l.bookBy ? ' by ' + esc(shortDate(parseDate(l.bookBy))) : '') + '. ' +
+          (l.soldOut ? '<strong>This room is sold out.</strong>' : l.roomsLeft + ' of these rooms left.') +
+          ' Price checked daily.</p>' +
+      '</div>';
+  }
+
   // ---------- loading ----------
   var loading = false;
   function refresh() {
@@ -643,8 +742,9 @@
     $('refresh').disabled = true;
     var fontReady = document.fonts && document.fonts.load
       ? document.fonts.load('40px Anton').catch(function () {}) : Promise.resolve();
-    Promise.all([loadRaw(), fontReady]).then(function (all) {
+    Promise.all([loadRaw(), fontReady, loadLodging()]).then(function (all) {
       var res = all[0];
+      lodging = all[2];
       model = build(res.raw);
       var banner = $('sample-banner');
       if (res.source === 'sample') banner.textContent = 'Sample data · not the real numbers yet';

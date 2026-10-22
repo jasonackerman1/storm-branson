@@ -1,0 +1,39 @@
+name: Check lodging price
+
+# Once a day, check the example family room (2 Bedroom Condo at The Suites at
+# Fall Creek) on EventConnect. Saves the price to data/lodging.json for the
+# dashboard, and opens an issue (GitHub emails you) if the price changes or the
+# room sells out.
+on:
+  schedule:
+    - cron: '17 13 * * *'   # about 9am Eastern
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check the price
+        run: python3 tools/check_lodging.py
+      - name: Save any change
+        run: |
+          if ! git diff --quiet -- data/lodging.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+            git add data/lodging.json
+            git commit -m "Lodging price update"
+            git push
+          fi
+      - name: Email an alert
+        if: hashFiles('lodging_alert.txt') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "Branson lodging price changed" --body-file lodging_alert.txt

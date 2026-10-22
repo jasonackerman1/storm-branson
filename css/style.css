@@ -44,27 +44,107 @@ button { font: inherit; color: inherit; }
   padding: 6px 16px;
 }
 
-/* ---- Header ---- */
+/* ---- Header: the trip, Storm (Hudson Valley) to Ballparks of America ---- */
 .top {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   max-width: 1200px;
   margin: 0 auto;
   padding: calc(16px + env(safe-area-inset-top)) 16px 4px;
 }
-.wordmark { height: 46px; width: auto; flex-shrink: 0; }
-.top-titles { min-width: 0; }
-.top h1 {
-  font-family: var(--jersey-font);
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: .02em;
-  font-size: clamp(26px, 6vw, 40px);
-  line-height: 1;
-  margin: 0;
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-.trip-name { margin: 4px 0 0; color: var(--text-dim); font-size: 14px; }
+.route-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.wordmark { height: 54px; width: auto; }
+.route-place, .road-to, .route-miles {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #d8cdbb;
+  text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  white-space: nowrap;
+}
+.road-to { color: var(--accent); font-size: 12px; letter-spacing: .22em; }
+.boa-logo { height: 96px; width: auto; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+.route {
+  flex: 1;
+  min-width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+}
+.route-track {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 18px);
+}
+/* Pins at each end of the route. */
+.route-track::before, .route-track::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 11px; height: 11px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(248,176,0,.25);
+}
+.route-track::before { left: -2px; }
+.route-track::after { right: -2px; background: var(--red); box-shadow: 0 0 0 3px rgba(208,0,24,.3); }
+/* A baseball rolling from Hudson Valley to Branson. */
+.route-ball {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 20px; height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: url('../img/baseball.svg') center / contain no-repeat;
+  box-shadow: 0 1px 6px rgba(0,0,0,.6);
+  animation: route-roll 7s ease-in-out infinite;
+}
+.route-countdown { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #d8cdbb; text-shadow: 0 1px 6px rgba(0,0,0,.8); white-space: nowrap; margin-bottom: -6px; }
+.route-countdown b { font-family: var(--jersey-font); font-weight: 400; font-size: 26px; letter-spacing: .02em; color: var(--accent); margin-right: 4px; vertical-align: -3px; }
+.event-name, .event-dates { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #d8cdbb; text-shadow: 0 1px 6px rgba(0,0,0,.8); white-space: nowrap; line-height: 1.2; }
+.event-name { color: var(--text); margin-top: 2px; }
+.event-dates { margin-top: -4px; color: var(--accent); }
+
+@keyframes route-roll {
+  0%   { left: 0;    transform: rotate(0deg);   opacity: 0; }
+  8%   { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: 100%; transform: rotate(720deg); opacity: 0; }
+}
+@media (max-width: 640px) {
+  .top { gap: 8px; }
+  .wordmark { height: 38px; }
+  .boa-logo { height: 70px; }
+  .route-ball { width: 17px; height: 17px; margin: -8.5px 0 0 -8.5px; }
+  .route-place, .road-to, .route-miles { font-size: 9px; letter-spacing: .1em; }
+  .route-miles { white-space: normal; text-align: center; }
+  .route-countdown { font-size: 8.5px; letter-spacing: .08em; white-space: normal; text-align: center; line-height: 1.15; margin-bottom: -4px; }
+  .route-countdown b { display: block; font-size: 22px; margin: 0 0 1px; vertical-align: 0; }
+  .event-name, .event-dates { font-size: 8.5px; letter-spacing: .06em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-ball { animation: none; left: 50%; }
+}
 
 main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
@@ -87,10 +167,9 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 }
 .hero-goal { color: var(--text-dim); font-size: 15px; margin-bottom: 12px; }
 .hero-goal span { color: var(--text); font-weight: 700; }
+.team-bar-wrap { position: relative; max-width: 620px; margin: 0 auto 34px; }
 .team-bar {
   height: 14px;
-  max-width: 620px;
-  margin: 0 auto;
   background: var(--bg-3);
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -234,6 +313,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 .mini-bar { height: 6px; background: var(--bg-3); border-radius: 99px; overflow: hidden; margin-top: 8px; }
 .mini-bar div { height: 100%; background: var(--red); border-radius: 99px; transition: width 1.2s cubic-bezier(.2, .8, .2, 1); }
 .card.full .mini-bar div { background: var(--accent); }
+.card-lodging { margin-top: 7px; font-size: 11px; color: var(--text-dim); }
 
 .over-chip {
   position: absolute;
@@ -410,3 +490,105 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
   .jersey-fill, .team-bar-fill, .mini-bar div { transition: none; }
   .sheet-panel, .sheet-backdrop { animation: none; }
 }
+
+/* ---- Background: Ballparks of America photo, then their video once it plays ----
+   Full-width, full 16:9 height, behind the whole page, fading into black. */
+.page-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: max(56.25vw, 420px); /* until banner.js sizes it to end just above The Breakdown */
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.banner-media {
+  position: absolute;
+  inset: 0;
+  background: var(--bg) url('https://a.storyblok.com/f/287282975935756/59898cda29/boa_panorama.png/m/1600x0/filters:quality(60):format(webp)') center 40% / cover no-repeat;
+}
+.banner-media iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.banner-media.video-on iframe { opacity: 1; }
+/* Tint for readable text, then a long, smooth fade into the page's black. */
+.page-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(5,5,5,.66) 0%,
+    rgba(5,5,5,.68) 35%,
+    rgba(5,5,5,.76) 55%,
+    rgba(5,5,5,.86) 72%,
+    rgba(5,5,5,.95) 88%,
+    var(--bg) 100%);
+}
+body { position: relative; }
+.banner { padding-bottom: 28px; }
+.banner-content { max-width: 1200px; margin: 0 auto; }
+.banner .hero { padding-left: 16px; padding-right: 16px; }
+.banner .hero-label, .banner .hero-goal { color: #d8cdbb; }
+.banner .hero-goal { text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+
+/* ---- Team payment due dates on the team bar ---- */
+.team-marks { position: absolute; inset: 0; pointer-events: none; }
+.team-mark { position: absolute; top: -4px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.team-mark i { width: 2px; height: 22px; background: rgba(244, 237, 225, .7); border-radius: 2px; }
+.team-mark span {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: #d8cdbb;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0,0,0,.8);
+}
+.team-mark.met i { background: var(--accent); }
+.team-mark.met span { color: var(--accent); }
+.team-mark.late i { background: var(--red); }
+.team-mark.late span { color: #ff6b7a; }
+.team-mark.end { transform: translateX(-100%); align-items: flex-end; }
+.team-mark.end span { text-align: right; }
+.team-next { margin: 8px auto 0; max-width: 620px; font-size: 14px; color: #d8cdbb; text-shadow: 0 1px 6px rgba(0,0,0,.8); }
+.team-next strong { color: var(--text); }
+.team-next .ok { color: var(--ok); }
+
+/* ---- Family lodging estimate (player popup) ---- */
+.lodging { background: var(--bg-3); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.lodging-where { margin: 0 0 10px; font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+.lodging-where strong { color: var(--text); }
+.lodging-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 5px 0; border-top: 1px solid var(--line); }
+.lodging-row span:last-child { font-variant-numeric: tabular-nums; font-weight: 700; }
+.lodging-note { margin: 10px 0 0; font-size: 12px; color: var(--text-dim); line-height: 1.45; }
+.lodging-note a { color: var(--accent); }
+.lodging-note.warn { color: #ff6b7a; }
+
+/* ---- Know Before You Go (from the Parents Prep Kit) ---- */
+.prep { margin: 40px 0 10px; }
+.prep-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.prep-head h2 { font-family: var(--jersey-font); font-weight: 400; text-transform: uppercase; font-size: 26px; margin: 0; }
+.prep-download {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--accent); color: #000; font-weight: 800; font-size: 14px;
+  padding: 10px 16px; border-radius: 999px; text-decoration: none;
+}
+.prep-download:hover { background: #ffc229; }
+.prep-note { color: var(--text-dim); font-size: 13px; margin: 8px 0 14px; }
+.prep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.prep-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.prep-card h3 { margin: 0 0 8px; font-size: 16px; }
+.prep-card ul { margin: 0; padding-left: 18px; }
+.prep-card li { font-size: 14px; line-height: 1.45; color: var(--text-dim); margin: 4px 0; }
+.prep-card li strong { color: var(--text); }
+.prep-contact { font-size: 13px; color: var(--text-dim); margin: 14px 0 0; }
+.prep-contact a { color: var(--accent); }
+@media (max-width: 640px) { .prep-grid { grid-template-columns: 1fr; } }
