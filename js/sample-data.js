@@ -38,6 +38,8 @@ window.BRANSON_SAMPLE = {
     { date: '10/03/2026', player: 'Mason Frank', from: 'Frank Family', amount: '400', method: 'Venmo', type: 'Family', notes: '' },
     { date: '9/12/2026', player: 'Liam Tineo', from: 'Tineo Family', amount: '50', method: 'Cash', type: 'Deposit', notes: '' },
     { date: '10/16/2026', player: 'Liam Pichardo', from: 'Westgate Tire', amount: '200', method: 'Check', type: 'Sponsor', notes: '' },
+    { date: '10/19/2026', player: 'Owen Ackerman', from: "Dunkin' Donuts table", amount: '62.50', method: 'Cash', type: 'Fundraiser', notes: 'Split with Jake ($125 total)' },
+    { date: '10/19/2026', player: 'Jake Harris', from: "Dunkin' Donuts table", amount: '62.50', method: 'Cash', type: 'Fundraiser', notes: 'Split with Owen ($125 total)' },
     { date: '10/06/2026', player: '', from: 'Anonymous', amount: '250', method: 'Check', type: 'Other', notes: 'For the whole team' }
   ],
   sponsors: [

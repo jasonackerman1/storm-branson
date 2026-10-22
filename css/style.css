@@ -344,7 +344,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 .detail-top .jersey { width: 110px; flex-shrink: 0; margin: 0; }
 .detail-top h3 { font-family: var(--jersey-font); font-weight: 400; font-size: 28px; text-transform: uppercase; margin: 0; line-height: 1.05; }
 .detail-amount { font-family: var(--jersey-font); font-size: 36px; color: var(--accent); line-height: 1.1; margin-top: 4px; }
-.detail-amount small { font-family: var(--body-font); font-size: 14px; color: var(--text-dim); }
+.detail-amount small { font-family: var(--body-font); font-size: 14px; color: var(--text-dim); white-space: nowrap; }
 .detail-status { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
 .detail-status strong { color: var(--text); }
 .detail-bar { height: 10px; background: var(--bg-3); border-radius: 99px; overflow: hidden; margin: 16px 0 4px; }
@@ -370,6 +370,9 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
   border-bottom: 1px solid var(--line);
   padding-bottom: 6px;
 }
+.detail h4 { display: flex; justify-content: space-between; align-items: baseline; }
+.h4-total { color: var(--text); letter-spacing: 0; font-size: 15px; font-weight: 800; text-transform: none; }
+.row-amt-none { color: var(--text-dim); font-weight: 400; }
 .rows { list-style: none; margin: 0; padding: 0; }
 .rows li {
   display: flex;

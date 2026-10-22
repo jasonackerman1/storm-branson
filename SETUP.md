@@ -27,7 +27,8 @@ This takes about 5 minutes and only has to be done once.
 ## How the organizers use it
 - **Payments tab:** one row per check, Venmo, or cash payment. Pick the player from the dropdown, or leave Player blank for a general donation.
   Pick Type **Deposit** for the $50 commitment deposit. That's how the dashboard knows a player's deposit is in.
-- **Sponsors tab:** the companies each player is asking. When a sponsor's money arrives, also add it on Payments, with the same company name in **From**, so it shows as "received."
+- **Table collections** (a few boys at a Dunkin' Donuts table, say): split the money and add one Payments row per boy with his share, Type **Fundraiser**. It shows under each boy's **Money collected**.
+- **Sponsors tab:** the companies each player is asking. When a sponsor's money arrives, also add it on Payments, with the same company name in **From**, so it shows under that player's **Sponsors** (and not twice). A company payment with Type **Sponsor** shows under Sponsors even if nobody added it to the Sponsors tab.
 - **Settings tab:** type the deposit deadline (like `3/1/2027`) once it's known, and the dashboard starts a countdown.
 - Don't rename the tabs or the row-1 headers. If a name on Payments doesn't match the Players tab, the dashboard shows a "For the organizers" note at the bottom of the page.
 

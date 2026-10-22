@@ -1,6 +1,6 @@
 # Storm Branson — Project Status
 
-_Last updated: 2026-10-21_
+_Last updated: 2026-10-22_
 
 ## What it is
 A live fundraising dashboard for the Storm 11U trip to the Ballparks of America tournament (Branson, MO). Each player has a $1,000 "bucket," and the $50 commitment deposit counts toward it. If every player's deposit is in by the deadline, the team gets $100 off per player.
@@ -13,9 +13,16 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 - **Stat cards:** Deposits in (with deadline countdown), Buckets full ($ still to go), General Fund (tap for its payments), Average per player.
 - **Team-discount banner:** "X of 14 in, still waiting on …" (adds a last initial when first names repeat, e.g. the two Liams). Switches to a celebration once all deposits are in.
 - **Jersey buckets:** each jersey fills from the bottom with an animated wave, red while filling and gold once it reaches $1,000. A "+$X" chip shows money over the goal, and a deposit stamp sits in the corner (green check, or dashed $). Sort by #, Most, Least, A–Z (remembered per browser).
-- **Player detail sheet** (tap a jersey): total, to-go/over, deposit date, sponsor list (Asked/Pledged/Paid/Declined, plus "received," matched from Payments by company name), and every payment received.
+- **Player detail sheet** (tap a jersey): total, to-go/over, deposit date, Sponsors, and Money Collected (see below).
 - **Robustness:** a sheet that isn't shared, or a wrong tab name, gives a plain error message. Google silently returns the first tab for an unknown tab name, so the page checks the column headers. It falls back to the last good copy kept in that browser. Payment rows naming a player who isn't on the Players tab go to the General Fund, with a "For the organizers" note.
 - **Sample data** (`js/sample-data.js`) shows every state until a sheet ID is set. A yellow banner says so.
+
+## Detail popup: Sponsors vs Money Collected (2026-10-22)
+- Jason found the first version confusing: a sponsor's payment showed twice, once under Sponsors and again under "Payments received."
+- **Sponsors** now lists each company with its status, the amount it paid, and the date and method. Money from a listed sponsor shows only here. A payment with Type **Sponsor** from a company not on the Sponsors tab is added automatically as Paid.
+- **Money Collected** (renamed from Payments received) lists everything else: family, the deposit, and table collections.
+- Both section headers show their subtotal, and the two add up to the player's total. The General Fund popup uses Money Collected too.
+- Table collections (e.g. two boys at a Dunkin' Donuts table): one Payments row per boy with his share, Type Fundraiser. This is explained in the template's Instructions tab and in SETUP.md. Sample data has an example (Owen/Jake, $62.50 each).
 
 ## Data (Google Sheet), built by `tools/build_template.py` → `template/Storm-Branson-Tracker.xlsx`
 - **Settings:** one row, one setting per column (Goal Per Player, Deposit Amount, Deposit Deadline, Team Discount, Trip Name).

@@ -188,18 +188,39 @@
         return;
       }
       var company = norm(r.company);
-      var received = player.payments.reduce(function (sum, p) {
-        return norm(p.from) === company ? sum + p.amount : sum;
-      }, 0);
-      player.sponsors.push({
+      // A payment from a listed sponsor belongs to that sponsor, so it's shown
+      // once (under Sponsors) instead of again under Money Collected.
+      var paid = player.payments.filter(function (p) { return !p.sponsor && norm(p.from) === company; });
+      var sponsor = {
         company: r.company, contact: r.contact || '', status: (r.status || 'Asked').trim(),
-        pledged: num(r.pledgedamount), received: received, notes: r.notes || ''
-      });
+        pledged: num(r.pledgedamount), notes: r.notes || '', payments: paid,
+        received: paid.reduce(function (sum, p) { return sum + p.amount; }, 0)
+      };
+      paid.forEach(function (p) { p.sponsor = sponsor; });
+      player.sponsors.push(sponsor);
     });
 
     var byDateDesc = function (a, b) { return (b.date || 0) - (a.date || 0); };
     players.forEach(function (p) {
+      // Sponsor-type payments from a company that isn't on the Sponsors tab
+      // still count as sponsors: add them as Paid.
+      p.payments.forEach(function (pay) {
+        if (pay.sponsor || norm(pay.type) !== 'sponsor' || !pay.from) return;
+        var match = p.sponsors.filter(function (s) { return s.auto && norm(s.company) === norm(pay.from); })[0];
+        if (!match) {
+          match = { company: pay.from, contact: '', status: 'Paid', pledged: 0, notes: '', payments: [], received: 0, auto: true };
+          p.sponsors.push(match);
+        }
+        match.payments.push(pay);
+        match.received += pay.amount;
+        pay.sponsor = match;
+      });
+      p.sponsors.forEach(function (s) { s.payments.sort(byDateDesc); });
+      p.sponsorTotal = p.sponsors.reduce(function (sum, s) { return sum + s.received; }, 0);
+      p.collected = p.payments.filter(function (pay) { return !pay.sponsor; });
+      p.collectedTotal = p.total - p.sponsorTotal;
       p.payments.sort(byDateDesc);
+      p.collected.sort(byDateDesc);
       p.hasDeposit = p.depositPaid >= settings.deposit - 0.001;
       p.full = p.total >= settings.goal;
       p.pct = settings.goal ? p.total / settings.goal : 0;
@@ -384,8 +405,12 @@
   }
 
   // ---------- detail sheet ----------
+  function sectionHead(title, total) {
+    return '<h4><span>' + esc(title) + '</span><span class="h4-total">' + money(total) + '</span></h4>';
+  }
+
   function paymentRows(list, showPlayer) {
-    if (!list.length) return '<p class="empty">No payments recorded yet.</p>';
+    if (!list.length) return '<p class="empty">Nothing collected yet.</p>';
     return '<ul class="rows">' + list.map(function (p) {
       var bits = [p.date ? shortDate(p.date) : p.dateText, p.method, p.type].filter(Boolean);
       if (showPlayer && p.unmatched) bits.push('listed as “' + p.unmatched + '”');
@@ -403,13 +428,17 @@
     });
     return '<ul class="rows">' + list.map(function (s) {
       var cls = 'status-' + (order[norm(s.status)] != null ? norm(s.status) : 'asked');
-      var right = [];
-      if (s.received) right.push(money(s.received) + ' received');
-      if (s.pledged && s.received < s.pledged) right.push(money(s.pledged) + ' pledged');
+      var sub = s.payments.map(function (p) {
+        return [p.date ? shortDate(p.date) : p.dateText, p.method].filter(Boolean).join(' · ');
+      }).filter(Boolean);
+      if (s.pledged && s.received < s.pledged) {
+        sub.push(money(s.pledged) + ' pledged' + (s.received ? ', ' + money(s.pledged - s.received) + ' still coming' : ''));
+      }
+      sub = sub.concat([s.contact, s.notes].filter(Boolean));
       return '<li><div class="row-main"><div class="row-title">' + esc(s.company) +
         '<span class="status ' + cls + '">' + esc(s.status) + '</span></div>' +
-        '<div class="row-sub">' + esc([s.contact, s.notes].filter(Boolean).join(' · ')) + '</div></div>' +
-        '<div class="row-amt">' + right.map(esc).join('<br>') + '</div></li>';
+        '<div class="row-sub">' + esc(sub.join(' · ')) + '</div></div>' +
+        '<div class="row-amt' + (s.received ? '' : ' row-amt-none') + '">' + (s.received ? money(s.received) : '—') + '</div></li>';
     }).join('') + '</ul>';
   }
 
@@ -437,8 +466,8 @@
           (p.full ? '<span class="pill gold">★ Goal reached</span>' : '') +
           '<span class="pill">' + Math.round(p.pct * 100) + '% of goal</span>' +
         '</div>' +
-        '<h4>Sponsors</h4>' + sponsorRows(p.sponsors) +
-        '<h4>Payments received</h4>' + paymentRows(p.payments) +
+        sectionHead('Sponsors', p.sponsorTotal) + sponsorRows(p.sponsors) +
+        sectionHead('Money collected', p.collectedTotal) + paymentRows(p.collected) +
       '</div>'
     );
   }
@@ -449,7 +478,7 @@
         '<h3 id="sheet-title" class="general-title" style="font-family:var(--jersey-font);font-weight:400;font-size:28px;text-transform:uppercase;margin:0">General Fund</h3>' +
         '<div class="detail-amount">' + money(model.general.total) + '</div>' +
         '<div class="detail-status">Donations that aren’t for a specific player. They count toward the team total.</div>' +
-        '<h4>Payments received</h4>' + paymentRows(model.general.payments, true) +
+        sectionHead('Money collected', model.general.total) + paymentRows(model.general.payments, true) +
       '</div>'
     );
   }
