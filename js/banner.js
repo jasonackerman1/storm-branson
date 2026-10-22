@@ -21,6 +21,23 @@
   window.addEventListener('load', sizeBg);
   if (window.ResizeObserver) new ResizeObserver(sizeBg).observe(document.querySelector('main') || document.body);
 
+  // Keep the dashed route line level with the centers of the two logos.
+  var route = document.querySelector('.route');
+  var logos = document.querySelectorAll('.wordmark, .boa-logo');
+  function alignRoute() {
+    if (!route || logos.length < 2) return;
+    var r = route.getBoundingClientRect();
+    var a = logos[0].getBoundingClientRect(), b = logos[1].getBoundingClientRect();
+    var logoMid = ((a.top + a.height / 2) + (b.top + b.height / 2)) / 2;
+    route.style.setProperty('--route-offset', (r.top + r.height / 2 - logoMid).toFixed(1) + 'px');
+  }
+  alignRoute();
+  window.addEventListener('resize', alignRoute);
+  window.addEventListener('load', alignRoute);
+  logos.forEach(function (img) { img.addEventListener('load', alignRoute); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignRoute);
+  if (window.ResizeObserver && route) new ResizeObserver(alignRoute).observe(route.parentNode);
+
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var saveData = navigator.connection && navigator.connection.saveData;
   if (reduceMotion || saveData) return;

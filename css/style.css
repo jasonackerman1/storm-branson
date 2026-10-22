@@ -79,18 +79,25 @@ button { font: inherit; color: inherit; }
 }
 .road-to { color: var(--accent); font-size: 12px; letter-spacing: .22em; }
 .boa-logo { height: 96px; width: auto; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+/* The dashed line sits level with the centers of the two logos; the countdown
+   floats above it and the miles below, so neither pushes it off center. */
 .route {
   flex: 1;
   min-width: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding-top: 14px;
-}
-.route-track {
   position: relative;
-  width: 100%;
+  align-self: stretch;
+}
+.route-countdown, .route-miles {
+  position: absolute;
+  left: 0; right: 0;
+  text-align: center;
+}
+.route-countdown { bottom: calc(50% + var(--route-offset, 0px) + 12px); }
+.route-miles { top: calc(50% - var(--route-offset, 0px) + 12px); }
+.route-track {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(50% - var(--route-offset, 0px) - 1.5px);
   height: 3px;
   background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 18px);
 }
@@ -119,7 +126,7 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 1px 6px rgba(0,0,0,.6);
   animation: route-roll 7s ease-in-out infinite;
 }
-.route-countdown { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #d8cdbb; text-shadow: 0 1px 6px rgba(0,0,0,.8); white-space: nowrap; margin-bottom: -6px; }
+.route-countdown { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #d8cdbb; text-shadow: 0 1px 6px rgba(0,0,0,.8); white-space: nowrap; }
 .route-countdown b { font-family: var(--jersey-font); font-weight: 400; font-size: 26px; letter-spacing: .02em; color: var(--accent); margin-right: 4px; vertical-align: -3px; }
 .event-name, .event-dates { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #d8cdbb; text-shadow: 0 1px 6px rgba(0,0,0,.8); white-space: nowrap; line-height: 1.2; }
 .event-name { color: var(--text); margin-top: 2px; }
@@ -138,7 +145,7 @@ button { font: inherit; color: inherit; }
   .route-ball { width: 17px; height: 17px; margin: -8.5px 0 0 -8.5px; }
   .route-place, .road-to, .route-miles { font-size: 9px; letter-spacing: .1em; }
   .route-miles { white-space: normal; text-align: center; }
-  .route-countdown { font-size: 8.5px; letter-spacing: .08em; white-space: normal; text-align: center; line-height: 1.15; margin-bottom: -4px; }
+  .route-countdown { font-size: 8.5px; letter-spacing: .08em; white-space: normal; text-align: center; line-height: 1.15; }
   .route-countdown b { display: block; font-size: 22px; margin: 0 0 1px; vertical-align: 0; }
   .event-name, .event-dates { font-size: 8.5px; letter-spacing: .06em; }
 }
