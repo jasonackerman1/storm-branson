@@ -85,5 +85,4 @@ Zero console errors. **Not yet tested against a real Google Sheet.**
 - **Sammy Van Tassel's money:** Jason assumes Sammy paid his deposit and has some donations, but nothing is confirmed. Add rows once it is.
 - **Deposit deadline:** goes in `js/config.js` (`depositDeadline`) when known. The countdown and discount line pick it up automatically.
 - Dates and methods for Owen's $300 are blank in the sheet; organizers can fill them in anytime.
-- Unanswered: should Robby Glas also show #7 in the Storm walk-up app (his tile currently reads GLAS / ?)?
 - Old uploaded-xlsx copy in Google Drive (ID `1cO_…`) should be deleted so nobody edits the wrong file.
