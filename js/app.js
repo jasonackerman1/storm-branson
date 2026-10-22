@@ -500,10 +500,15 @@
     if (!upcoming) { next.innerHTML = 'All team payment dates have passed.'; return; }
     var gap = upcoming.need - m.grandTotal, days = daysUntil(upcoming.due);
     var when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : 'in ' + days + ' days';
-    next.innerHTML = '<strong>Next team payment:</strong> ' + money(upcoming.amount) + ' due ' +
-      esc(shortDate(upcoming.due)) + ' (' + when + '). ' +
-      (gap > 0 ? 'The team needs ' + money(upcoming.need) + ' raised by then, <strong>' + money(gap) + ' to go</strong>.'
-               : '<strong class="ok">The team is on pace ✓</strong>');
+    // Payments are a running total, so spell out what the earlier ones add up to.
+    var idx = points.indexOf(upcoming);
+    var earlier = idx === 1 ? 'the ' + points[0].label.toLowerCase() : 'the earlier payments';
+    var total = upcoming.need > upcoming.amount
+      ? 'With ' + earlier + ', that’s ' + money(upcoming.need) + ' total; '
+      : 'That’s ' + money(upcoming.need) + ' total; ';
+    next.innerHTML = '<strong>Next team payment:</strong> ' + esc(upcoming.label) + ' (' + money(upcoming.amount) + ') is due ' +
+      esc(shortDate(upcoming.due)) + ' (' + when + '). ' + total + money(m.grandTotal) + ' raised, ' +
+      (gap > 0 ? '<strong>' + money(gap) + ' to go</strong>.' : '<strong class="ok">on pace ✓</strong>');
   }
 
   function deadlineText(d) {
