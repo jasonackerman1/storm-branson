@@ -4,7 +4,7 @@
 // Leave it empty to show the built-in sample data.
 // For testing without editing this file, add ?sheet=THE_ID to the page address.
 window.BRANSON_CONFIG = {
-  sheetId: '',
+  sheetId: '1cO_uqQf53QxV3BkwLjvU8hkJYxUTcBye',
   // How often an open page re-checks the sheet, in seconds.
   refreshSeconds: 60,
 

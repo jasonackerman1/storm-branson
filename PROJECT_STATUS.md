@@ -63,6 +63,11 @@ See `SETUP.md`: upload the template, **Save as Google Sheets**, share it, then p
 - **Spellings confirmed by Jason.** He corrected two: Lero's Point to Point and ArrowWorthy. Window Works is a separate company. Everything else was right as entered.
 - Checked by feeding the file to the dashboard as Google CSV: $300 total, 1/14 deposits, 14 jerseys, Owen's popup correct.
 
+## Connected to the real Google Sheet (2026-10-22)
+- Sheet ID `1cO_uqQf53QxV3BkwLjvU8hkJYxUTcBye`, set in `js/config.js`. The sample banner is gone.
+- gviz CSV returns the Tracker tab (35 lines: header + 34 rows), and Google sends `access-control-allow-origin` for the github.io site.
+- Jason's link had `rtpof=true`, a sign it may still be the uploaded .xlsx (Office-compatibility mode) rather than a converted Google Sheet. Reading works either way.
+
 ## Verified
 Headless Chrome (puppeteer-core, temporary, not committed), at desktop 1280px and phone 390px:
 - sample totals and no sideways scroll
