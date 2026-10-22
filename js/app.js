@@ -9,7 +9,7 @@
   var TAB = { name: 'Tracker', needs: ['player', 'number', 'from', 'amount'] };
   // Back of a baseball jersey (where the name and number go): ribbed collar,
   // short set-in sleeves with striped cuffs, shirttail hem with side slits.
-  var JERSEY_PATH = 'M45 8 Q60 13 75 8 Q88 10 102 15 L118 42 L100 53 L91 39 L92 100 L93 103 C86 112 72 116 60 116 C48 116 34 112 27 103 L28 100 L29 39 L20 53 L2 42 L18 15 Q32 10 45 8 Z';
+  var JERSEY_PATH = 'M45 8 Q60 2.5 75 8 Q88 10 102 15 L118 42 L100 53 L91 39 L92 100 L93 103 C86 112 72 116 60 116 C48 116 34 112 27 103 L28 100 L29 39 L20 53 L2 42 L18 15 Q32 10 45 8 Z';
   var FILL_TOP = 8, FILL_BOTTOM = 116;
   // Fabric drawn over the fill (clipped to the jersey), so it still reads as a
   // jersey at any fill level: knit texture, lighting, soft folds, seams, cuff
@@ -25,7 +25,7 @@
         '<path d="M34 84 Q50 79 66 86 Q76 90 86 83" stroke-width="2.4" stroke-opacity=".5"/>' +
         '<path d="M38 94 Q41 102 38 111 M84 92 Q81 101 83 110" stroke-width="2" stroke-opacity=".45"/>' +
         '<path d="M9 34 Q15 37 18 47 M111 34 Q105 37 102 47" stroke-width="2.6"/>' +
-        '<path d="M46 16 Q60 20 74 16" stroke-width="2.4"/>' +
+        '<path d="M47 15 Q60 18 73 15" stroke-width="1.6" stroke-opacity=".4"/>' +
       '</g>' +
       '<g stroke="#fff" stroke-opacity=".16">' +
         '<path d="M34 43 Q44 51 48 64 M86 43 Q76 51 72 64" stroke-width="2.2"/>' +
@@ -39,9 +39,18 @@
     '<path d="M-1 37 L26 53 M121 37 L94 53" stroke="#f4ede1" stroke-width="2.2"/>' +
     '<path d="M0.6 34.6 L27.2 50.8 M119.4 34.6 L92.8 50.8" stroke="#d00018" stroke-width="1.3"/>' +
     '<path d="M28 97 C35 107 48 111 60 111 C72 111 85 107 92 97" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".5" stroke-dasharray="1.3 1.1"/>' +
-    '<path d="M45 8 Q60 13 75 8" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="7"/>' +
-    '<path d="M45 8 Q60 13 75 8" fill="none" stroke="#f4ede1" stroke-width="3.2"/>' +
-    '<path d="M46 11.2 Q60 16.2 74 11.2" fill="none" stroke="#d00018" stroke-width="1.2"/>';
+    '';
+  // Back collar: the inside of the front collar shows as a thin dark sliver
+  // behind a nearly flat back collar band, with a logo patch below it (drawn
+  // outside the clip so the fill never covers it).
+  var JERSEY_COLLAR =
+    '<path d="M45 8 Q60 2.5 75 8 Q60 13 45 8 Z" fill="#050505"/>' +
+    '<path d="M46.5 7.4 Q60 3.2 73.5 7.4" fill="none" stroke="#f4ede1" stroke-opacity=".5" stroke-width="1"/>' +
+    '<path d="M48 8.4 Q60 6 72 8.4" fill="none" stroke="#1a1a1a" stroke-width="1.6"/>' +
+    '<path d="M44.6 8.3 Q60 13.4 75.4 8.3" fill="none" stroke="#f4ede1" stroke-width="2.6" stroke-linecap="round"/>' +
+    '<path d="M45.6 10.8 Q60 15.8 74.4 10.8" fill="none" stroke="#d00018" stroke-width="1.1" stroke-linecap="round"/>' +
+    '<rect x="56.4" y="16.4" width="7.2" height="4.6" rx="1" fill="#d00018" stroke="#f4ede1" stroke-width=".6"/>' +
+    '<path d="M58.2 20 Q60 17.6 61.8 17.6" fill="none" stroke="#f4ede1" stroke-width=".8" stroke-linecap="round"/>';
   var STORE_PREFIX = 'storm-branson:';
 
   var sheetId = new URLSearchParams(location.search).get('sheet') || CONFIG.sheetId || '';
@@ -327,6 +336,7 @@
         JERSEY_DETAILS +
       '</g>' +
       '<path d="' + JERSEY_PATH + '" fill="none" stroke="' + (p.full ? '#f8b000' : '#000') + '" stroke-opacity="' + (p.full ? 1 : .8) + '" stroke-width="1.2" stroke-linejoin="round"/>' +
+      JERSEY_COLLAR +
       '<text class="jersey-name" style="font-size:' + textSize.name + 'px"><textPath href="#arc-' + uid + '" startOffset="50%">' + esc(last) + '</textPath></text>' +
       '<text class="jersey-num-edge" x="60" y="98" style="' + numStyle + '">' + num + '</text>' +
       '<text class="jersey-num" x="60" y="98" style="' + numStyle + '">' + num + '</text>' +
