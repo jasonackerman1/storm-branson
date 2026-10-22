@@ -38,7 +38,7 @@ window.BRANSON_SAMPLE = {
     { player: "Johnathan Velez", number: "16" },
     { player: "Liam Tineo", number: "14", date: "9/12/2026", from: "Tineo Family", amount: "50", method: "Cash", type: "Deposit" },
     { player: "Liam Pichardo", number: "2", date: "10/16/2026", from: "Westgate Tire", amount: "200", method: "Check", type: "Sponsor", status: "Paid" },
-    { player: "Robby Glas", number: "?" },
+    { player: "Robby Glas", number: "7" },
     { date: "10/06/2026", from: "Anonymous", amount: "250", method: "Check", type: "Other", notes: "For the whole team" }
   ]
 };

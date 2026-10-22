@@ -36,7 +36,7 @@ Organizers enter money by hand in a Google Sheet. This page reads that sheet liv
 
 ## Data: ONE tab, "Tracker" (simplified 2026-10-22), built by `tools/build_template.py` → `template/*.xlsx`
 - Jason found four tabs plus long instructions too much, so it's now one tab: **Player | # | Date | From | Amount | Method | Type | Status | Notes**.
-  - **Every name in Player is a jersey** (revised same day, at Jason's request: no separate roster block). His # can be on any one of his rows. A kid with no money yet has a name-only row, and his first donation can be filled into it. A name with no # anywhere shows "?" plus an organizer note, since it's usually a typo or a new kid. An explicit "?" (Robby) doesn't trigger the note.
+  - **Every name in Player is a jersey** (revised same day, at Jason's request: no separate roster block). His # can be on any one of his rows. A kid with no money yet has a name-only row, and his first donation can be filled into it. A name with no # anywhere shows "?" plus an organizer note, since it's usually a typo or a new kid. Typing an explicit "?" as the # doesn't trigger the note. Robby Glas wears #7 (same as Owen) until new jerseys arrive, per Jason 2026-10-22.
   - Rows with an **Amount** are money received. A blank Player means the General Fund.
   - **Sponsor** rows with a Status and no Amount are companies that have been asked. When they pay, the Amount goes on the same row, and the row shows as Paid.
   - Pledged amounts go in Notes.
