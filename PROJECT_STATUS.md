@@ -1,16 +1,30 @@
 # Storm Branson — Project Status
 
-_Last updated: 2026-10-22_
+_Last updated: 2026-10-28_
 
 ## What it is
 A live fundraising dashboard for the Storm 11U trip to the Ballparks of America tournament (Branson, MO). Each player has a $1,000 "bucket," and the $50 commitment deposit counts toward it. The tournament is the **2027 Global Games, Jul 29 – Aug 2, 2027** (12U, $995/player; event page https://www.ballparksofamerica.com/event-46760). The old "$100 off if every deposit is in" message was retired 2026-10-22 as out of date (`teamDiscount: 0` hides it).
 
 Organizers enter money by hand in a Google Sheet. This page reads that sheet live every time it loads, every 60s while it's open, and when it comes back to the foreground.
 
+## How to Pay (2026-10-28)
+The mom leading the trip's fundraising saw the dashboard and asked whether people could pay through it. Until now, payments were tracked by Sean sending Nicole a screenshot. The page now makes paying easy. **It doesn't take money or know a payment happened.** An organizer still enters each payment in the sheet.
+- **Donate / Pay** gold button in the hero (under the next-payment line) jumps to `#pay`.
+- **How to Pay section** (`#pay`, before Know Before You Go, built by `setupPay()` in `js/app.js`):
+  - **Venmo:** a "Who is it for?" dropdown (General fund + every player in the sheet, refilled on each load) and a blue button to `@WallkillTravelOrganization`. The note fills in as `Storm 12U Branson (Player Name)`, the memo the donation form asks for. Givers type the amount (any amount).
+  - **Check:** payable to **Wallkill Travel Organization** (from the form, not "Hudson Valley Storm"), memo, include the form, mail to Hudson Valley Storm, 3 Lira St., Wallkill, NY 12589.
+  - Donation Form (PDF) download, 501(c)(3)/tax-deductible line, WallkillTravelTeams@gmail.com · 845-843-8548.
+- **Player popup:** "Venmo for {first name}" with that player's note, plus a "Pay by check" link back to the section. The General Fund popup has a Venmo button too.
+- All payment details are in one `payment` block in `js/config.js`. The form is `pdf/Storm-12U-Branson-Donation-Form.pdf` (page 1 is the sponsor letter, page 2 the form with the Venmo QR code).
+- Venmo link format: `https://venmo.com/?txn=pay&audience=private&recipients=USER&note=...`. `audience=private` keeps kids' names off Venmo's public feed. This format isn't officially documented, so **Jason should test it on his phone** (does the app open with the note filled in?). If not, try `venmo.com/u/USER`. The page already tells people to type the note themselves.
+- Tested in headless Chrome at phone and desktop sizes against the real sheet, with no errors from our code (the Vimeo embed logs its own). Live at `bf0b36d`.
+
 ## Where things stand (checkpoint 2026-10-22)
 **Live:** https://jasonackerman1.github.io/storm-branson/, reading the real team sheet. Today's work is all pushed and live (latest: 7 cards per row + Team payments card, `f2f9fb4`). Two GitHub Actions run on their own: the daily lodging price check and the weekly Ballparks of America page check (both first runs succeeded). Jason reviewed the live page end of day 2026-10-22: "looks great for now."
 
 **Roster:** all 14 still count. Lyons may be too old for 12U (April 30 cut-off), Harris is out (Cooperstown guest player), Liam P. is unsure, and Mason's brother Nolan might join. Jason's plan is to remove or add rows in the sheet once it's settled, with no tags. Ballparks' minimum is 11 players + 2 coaches; the max is 14 players + 4 coaches.
+
+**Repo location:** the working copy is `/Users/jackerman/Documents/storm-branson` (since 2026-10-28). An older clone at `/Users/jackerman/Documents/Storm/storm-branson` is behind and has no local changes. Delete it, or `git pull` it before using it.
 
 **Next / open questions for the coach:**
 1. Did the team put down its Ballparks deposit before 9/30 ($500) or after ($1,000)? This changes the Nov 30 target in `js/config.js`.
