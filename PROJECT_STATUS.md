@@ -24,7 +24,7 @@ The mom leading the trip's fundraising saw the dashboard and asked whether peopl
 
 **Roster:** all 14 still count. Lyons may be too old for 12U (April 30 cut-off), Harris is out (Cooperstown guest player), Liam P. is unsure, and Mason's brother Nolan might join. Jason's plan is to remove or add rows in the sheet once it's settled, with no tags. Ballparks' minimum is 11 players + 2 coaches; the max is 14 players + 4 coaches.
 
-**Repo location:** the working copy is `/Users/jackerman/Documents/storm-branson` (since 2026-10-28). An older clone at `/Users/jackerman/Documents/Storm/storm-branson` is behind and has no local changes. Delete it, or `git pull` it before using it.
+**Repo location:** the working copy is `/Users/jackerman/Documents/storm-branson` (since 2026-10-28). The old clone at `Documents/Storm/storm-branson` was removed 2026-10-28 (moved to the Trash).
 
 **Next / open questions for the coach:**
 1. Did the team put down its Ballparks deposit before 9/30 ($500) or after ($1,000)? This changes the Nov 30 target in `js/config.js`.
