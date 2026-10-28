@@ -15,6 +15,19 @@ window.BRANSON_CONFIG = {
   teamDiscount: 0,      // $ off per player if every deposit is in; 0 hides the discount box
   tripName: 'Ballparks of America, Branson, MO',
 
+  // How to pay, from the team's donation form (pdf/). Shown in the How to Pay
+  // section and on each player's card. The Venmo note is filled in for people
+  // as "Storm 12U Branson (Player Name)", the memo the form asks for.
+  payment: {
+    venmo: 'WallkillTravelOrganization',
+    payableTo: 'Wallkill Travel Organization',
+    mailTo: ['Hudson Valley Storm', '3 Lira St.', 'Wallkill, NY 12589'],
+    memo: 'Storm 12U Branson',
+    email: 'WallkillTravelTeams@gmail.com',
+    phone: '845-843-8548',
+    form: 'pdf/Storm-12U-Branson-Donation-Form.pdf'
+  },
+
   // The tournament (from ballparksofamerica.com/event-46760). Drives the
   // countdown and the dates under the Ballparks logo.
   event: {

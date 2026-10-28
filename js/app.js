@@ -446,6 +446,7 @@
     fitJerseyText();
     renderGrid();
     renderWarnings();
+    renderPayPlayers();
   }
 
   function daysUntil(d) {
@@ -671,6 +672,7 @@
           (p.full ? '<span class="pill gold">★ Goal reached</span>' : '') +
           '<span class="pill">' + Math.round(p.pct * 100) + '% of goal</span>' +
         '</div>' +
+        sheetPay(p.name, 'Venmo for ' + p.name.split(' ')[0]) +
         sectionHead('Sponsors', p.sponsorTotal) + sponsorRows(p.sponsors) +
         sectionHead('Money collected', p.collectedTotal) + paymentRows(p.collected) +
         lodgingSection() +
@@ -684,6 +686,7 @@
         '<h3 id="sheet-title" class="general-title" style="font-family:var(--jersey-font);font-weight:400;font-size:28px;text-transform:uppercase;margin:0">General Fund</h3>' +
         '<div class="detail-amount">' + money(model.general.total) + '</div>' +
         '<div class="detail-status">Donations that aren’t for a specific player. They count toward the team total.</div>' +
+        sheetPay('', 'Venmo to the general fund') +
         sectionHead('Money collected', model.general.total) + paymentRows(model.general.payments, true) +
       '</div>'
     );
@@ -739,6 +742,74 @@
       '</div>';
   }
 
+  // ---------- how to pay (details in config.js, from the team's donation form) ----------
+  var PAY = CONFIG.payment || null;
+  function payNote(name) { return PAY.memo + (name ? ' (' + name + ')' : ''); }
+  // On a phone this opens the Venmo app with the recipient and note filled in;
+  // the giver types the amount. audience=private keeps kids' names off the public feed.
+  function venmoUrl(name) {
+    return 'https://venmo.com/?txn=pay&audience=private&recipients=' + encodeURIComponent(PAY.venmo) +
+      '&note=' + encodeURIComponent(payNote(name));
+  }
+  function venmoButton(name, label) {
+    return '<a class="venmo-btn" href="' + esc(venmoUrl(name)) + '" target="_blank" rel="noopener">' + esc(label) + '</a>';
+  }
+  function sheetPay(name, label) {
+    if (!PAY) return '';
+    return '<div class="sheet-pay">' + venmoButton(name, label) +
+      '<a class="sheet-pay-check" href="#pay" data-close>Pay by check</a></div>';
+  }
+  function setupPay() {
+    var el = $('pay');
+    if (!PAY) { el.hidden = true; document.querySelectorAll('.pay-cta').forEach(function (a) { a.hidden = true; }); return; }
+    el.innerHTML =
+      '<div class="prep-head"><h2 id="pay-title">How to Pay</h2>' +
+        '<div class="prep-downloads"><a class="prep-download" href="' + esc(PAY.form) + '" target="_blank" rel="noopener" download>' +
+        '<span aria-hidden="true">⬇</span> Donation Form (PDF)</a></div></div>' +
+      '<p class="prep-note">Families, friends and sponsors can give any amount. Say which player it’s for so it goes in the right bucket. ' +
+        'Payments show up on this page once an organizer records them, so give it a few days.</p>' +
+      '<div class="pay-grid">' +
+        '<div class="prep-card pay-card">' +
+          '<h3>📱 Venmo</h3>' +
+          '<label class="pay-label" for="pay-player">Who is it for?</label>' +
+          '<select id="pay-player" class="pay-select"><option value="">General fund (the whole team)</option></select>' +
+          '<a id="pay-venmo" class="venmo-btn" target="_blank" rel="noopener">Pay @' + esc(PAY.venmo) + '</a>' +
+          '<p class="pay-memo">The note fills in for you: <strong id="pay-note"></strong>. If it doesn’t, type it in so we know who it’s for.</p>' +
+        '</div>' +
+        '<div class="prep-card pay-card">' +
+          '<h3>✉️ Check</h3>' +
+          '<ul>' +
+            '<li>Make it payable to <strong>' + esc(PAY.payableTo) + '</strong>.</li>' +
+            '<li>In the memo, write <strong>' + esc(PAY.memo) + '</strong> and the player’s name.</li>' +
+            '<li>Include the completed <a href="' + esc(PAY.form) + '" target="_blank" rel="noopener">donation form</a>.</li>' +
+            '<li>Mail it to:<address class="pay-address">' + PAY.mailTo.map(esc).join('<br>') + '</address></li>' +
+          '</ul>' +
+        '</div>' +
+      '</div>' +
+      '<p class="prep-contact">' + esc(PAY.payableTo) + ' is a 501(c)(3) nonprofit. Donations may be tax-deductible to the extent permitted by law, and a receipt is available. ' +
+        'Questions: <a href="mailto:' + esc(PAY.email) + '">' + esc(PAY.email) + '</a> · ' +
+        '<a href="tel:+1' + esc(PAY.phone.replace(/\D/g, '')) + '">' + esc(PAY.phone) + '</a></p>';
+    $('pay-player').addEventListener('change', updatePayLink);
+    updatePayLink();
+  }
+  // Refill the player list after each sheet load, keeping the current choice.
+  function renderPayPlayers() {
+    var sel = $('pay-player');
+    if (!sel) return;
+    var keep = sel.value;
+    var names = model.players.map(function (p) { return p.name; })
+      .sort(function (a, b) { return a.localeCompare(b); });
+    sel.innerHTML = '<option value="">General fund (the whole team)</option>' +
+      names.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+    sel.value = names.indexOf(keep) >= 0 ? keep : '';
+    updatePayLink();
+  }
+  function updatePayLink() {
+    var name = $('pay-player').value;
+    $('pay-venmo').href = venmoUrl(name);
+    $('pay-note').textContent = payNote(name);
+  }
+
   // ---------- loading ----------
   var loading = false;
   function refresh() {
@@ -772,6 +843,7 @@
 
   // ---------- wire up ----------
   addGradients();
+  setupPay();
   document.querySelectorAll('.sort button').forEach(function (b) {
     b.classList.toggle('active', b.getAttribute('data-sort') === sortMode);
     b.addEventListener('click', function () {
