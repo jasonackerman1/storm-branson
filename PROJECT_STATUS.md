@@ -16,7 +16,7 @@ The mom leading the trip's fundraising saw the dashboard and asked whether peopl
   - Donation Form (PDF) download, 501(c)(3)/tax-deductible line, WallkillTravelTeams@gmail.com · 845-843-8548.
 - **Player popup:** "Venmo for {first name}" with that player's note, plus a "Pay by check" link back to the section. The General Fund popup has a Venmo button too.
 - All payment details are in one `payment` block in `js/config.js`. The form is `pdf/Storm-12U-Branson-Donation-Form.pdf` (page 1 is the sponsor letter, page 2 the form with the Venmo QR code).
-- Venmo link format: `https://venmo.com/?txn=pay&audience=private&recipients=USER&note=...`. `audience=private` keeps kids' names off Venmo's public feed. This format isn't officially documented, so **Jason should test it on his phone** (does the app open with the note filled in?). If not, try `venmo.com/u/USER`. The page already tells people to type the note themselves.
+- Venmo link format: `https://venmo.com/?txn=pay&audience=private&recipients=USER&note=...`. `audience=private` keeps kids' names off Venmo's public feed. This format isn't officially documented, but **Jason tested it on his phone on 2026-10-28 and it works.** The page already tells people to type the note themselves.
 - Tested in headless Chrome at phone and desktop sizes against the real sheet, with no errors from our code (the Vimeo embed logs its own). Live at `bf0b36d`.
 
 ## Where things stand (checkpoint 2026-10-22)
